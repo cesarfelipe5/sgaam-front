@@ -7,6 +7,7 @@ import MainPage from "./pages/MainPage";
 import Mensalidades from "./pages/Mensalidades";
 import Modalidades from "./pages/Modalidades";
 import Pagamentos from "./pages/Pagamentos";
+import Planos from "./pages/Planos";
 import Relatorios from "./pages/Relatorios";
 import UsersPermissoes from "./pages/UsersPermissoes";
 
@@ -21,6 +22,7 @@ function App() {
         <Route path="/mensalidades" element={<Mensalidades />} />
         <Route path="/modalidades" element={<Modalidades />} />
         <Route path="/pagamentos" element={<Pagamentos />} />
+        <Route path="/planos" element={<Planos />} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/userpermissoes" element={<UsersPermissoes />} />
       </Routes>

@@ -138,27 +138,34 @@ const MainPage = () => {
   const handleViewDetails = async (id) => {
     const data = await getAlunoById({ id });
 
-    setEditingRecord(data);
+    const dataToView = {
+      ...data,
+      tipo: data.telefones[0].tipo,
+      numero_telefone: data.telefones[0].numero,
+    };
+
+    setEditingRecord(dataToView);
 
     setViewDetailsVisible(true);
   };
 
   const handleOk = async () => {
-    try{
-    const values = await form.validateFields();
+    try {
+      const values = await form.validateFields();
 
-    if (editingRecord) {
-      updateAluno(values);
-    } else {
-      submitAluno(values);
+      if (editingRecord) {
+        updateAluno(values);
+      } else {
+        submitAluno(values);
+      }
+
+      setModalVisible(false);
+
+      form.resetFields();
+    } catch (error) {
+      console.error("Erro na validação:", error);
     }
 
-    setModalVisible(false);
-
-    form.resetFields();
-  }catch (error) {
-  console.error("Erro na validação:", error);
-}
   }
   const handleCancel = () => {
     setModalVisible(false);
@@ -314,7 +321,7 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <Input maxLength={11} />
+                <Input maxLength={11} type="number" />
               </Form.Item>
 
               <Form.Item
@@ -328,7 +335,7 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <Input maxLength={11} minLength={7} />
+                <Input maxLength={11} minLength={7} type="number" />
               </Form.Item>
 
               <Form.Item

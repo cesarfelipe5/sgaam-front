@@ -18,7 +18,7 @@ root.render(
       closeOnClick
       pauseOnHover={false}
       draggable
-      theme="light"
+      theme="colored"
       transition={Bounce}
     />
   </React.StrictMode>
