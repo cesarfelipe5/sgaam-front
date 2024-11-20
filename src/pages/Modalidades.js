@@ -51,10 +51,25 @@ const EditableTable = () => {
     setLoading(false);
   };
 
-  const handleRemove = (key) => {
-    const updatedModalidades = modalidades.filter((item) => item.key !== key);
-
-    setModalidades(updatedModalidades);
+  const handleRemove = async(id) => {
+    setLoading(true)
+    const success = await ModalidadeService.removeById({id});
+    
+    if (!success) {
+      toast.error(
+        "Houve um problema na removação da modalidade. Tente novamente mais tarde."
+      );
+      
+      setLoading(false);
+      
+      return;
+    }
+    
+    toast.success("Modalidade removida com sucesso.");
+    
+    getData();
+    
+    setLoading(false)
   };
 
   const edit = (record) => {
@@ -69,7 +84,9 @@ const EditableTable = () => {
     setEditingKey(record.key);
   };
 
-  const cancel = () => setEditingKey("");
+  const cancel = () => {
+    setEditingKey(""); // Limpa o estado de edição
+  };
 
   const save = async (key) => {
     try {
@@ -142,7 +159,9 @@ const EditableTable = () => {
               Editar
             </Button>
 
-            <Button type="danger" onClick={() => handleRemove(record.key)}>
+
+
+            <Button type="danger" onClick={() => handleRemove(record.id)}>
               Remover
             </Button>
           </>
@@ -203,8 +222,9 @@ const EditableTable = () => {
 
     const { data } = await ModalidadeService.getData();
 
-    const newData = data.map((element) => ({
+    const newData = data.map((element, index) => ({
       ...element,
+      key: element.id || index,
       status: element.status ? "Ativo" : "Inativo",
     }));
 
