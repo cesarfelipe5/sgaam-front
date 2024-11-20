@@ -10,6 +10,8 @@ const MainPage = () => {
   const [searchText, setSearchText] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [viewDetailsVisible, setViewDetailsVisible] = useState(false);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false); // Modal de confirmação
+  const [recordToDelete, setRecordToDelete] = useState(null); // Registro a ser excluído
   const [editingRecord, setEditingRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -106,8 +108,14 @@ const MainPage = () => {
     setModalVisible(true);
   };
 
-  const handleDelete = async (id) => {
-    const success = await AlunosService.removeById({ id });
+  const confirmDelete = (record) => () => {
+    setRecordToDelete(record);
+
+    setDeleteConfirmVisible(true);
+  };
+
+  const handleDelete = async () => {
+    const success = await AlunosService.removeById({ id: recordToDelete.id });
 
     if (!success) {
       toast.error(
@@ -121,6 +129,9 @@ const MainPage = () => {
 
     toast.success("Aluno removido com sucesso.");
 
+    setDeleteConfirmVisible(false); // Fechar o modal de confirmação
+    setRecordToDelete(null);
+
     await getData();
   };
 
@@ -133,6 +144,7 @@ const MainPage = () => {
   };
 
   const handleOk = async () => {
+    try{
     const values = await form.validateFields();
 
     if (editingRecord) {
@@ -144,13 +156,15 @@ const MainPage = () => {
     setModalVisible(false);
 
     form.resetFields();
-  };
-
+  }catch (error) {
+  console.error("Erro na validação:", error);
+}
+  }
   const handleCancel = () => {
     setModalVisible(false);
 
     setViewDetailsVisible(false);
-
+    setDeleteConfirmVisible(false); // Fechar modal de exclusão
     form.resetFields();
   };
 
@@ -209,7 +223,7 @@ const MainPage = () => {
 
           <Button onClick={() => handleEdit(record.id)}>Editar</Button>
 
-          <Button danger onClick={() => handleDelete(record.id)}>
+          <Button danger onClick={confirmDelete(record)}>
             Excluir
           </Button>
         </Space>
@@ -256,6 +270,20 @@ const MainPage = () => {
           </Space>
 
           <Table columns={columns} dataSource={dataSource} pagination={false} />
+
+          <Modal
+            title="Confirmar Exclusão"
+            open={deleteConfirmVisible}
+            onOk={handleDelete}
+            onCancel={handleCancel}
+            okText="Sim"
+            cancelText="Não"
+          >
+            <p>
+              Tem certeza de que deseja excluir o aluno{" "}
+              <strong>{recordToDelete?.nome}</strong>?
+            </p>
+          </Modal>
 
           <Modal
             title={editingRecord ? "Editar Aluno" : "Adicionar Aluno"}
@@ -308,7 +336,7 @@ const MainPage = () => {
                 label="Cep"
                 rules={[{ required: true, message: "CEP é obrigatório" }]}
               >
-                <Input />
+                <Input minLength={8} maxLength={8} />
               </Form.Item>
 
               <Form.Item
@@ -368,7 +396,7 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <Select defaultValue="Celular">
+                <Select >
                   <Select.Option value="Residencial">Residencial</Select.Option>
                   <Select.Option value="Comercial">Comercial</Select.Option>
                   <Select.Option value="Celular">Celular</Select.Option>
@@ -378,7 +406,13 @@ const MainPage = () => {
               <Form.Item
                 name="numero_telefone"
                 label="Número"
-                rules={[{ required: true, message: "Número é obrigatório" }]}
+                rules={[
+                  { required: true, message: "Número é obrigatório" },
+                  {
+                    pattern: /^(\d{10}|\d{11})$/,
+                    message: "O número deve conter 10 ou 11 dígitos",
+                  },
+                ]}
               >
                 <Input maxLength={11} />
               </Form.Item>
