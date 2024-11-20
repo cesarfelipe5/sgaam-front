@@ -1,10 +1,8 @@
-import { Button, Form, Input, Modal, Select, Table } from "antd";
+import { Button, Form, Input, Modal, Table, Checkbox } from "antd";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { ModalidadeService } from "../services/modalidade/ModalidadeService";
-
-const { Option } = Select;
 
 const EditableTable = () => {
   const [modalidades, setModalidades] = useState([]);
@@ -19,7 +17,6 @@ const EditableTable = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
-
     form.resetFields();
   };
 
@@ -27,82 +24,71 @@ const EditableTable = () => {
     setLoading(true);
 
     const success = await ModalidadeService.createModalidade({
-      modalidade: values,
+      modalidade: { ...values, status: values.status ? "Ativo" : "Inativo" },
     });
 
     if (!success) {
       toast.error(
         "Houve um problema na criação da modalidade. Tente novamente mais tarde."
       );
-
       setLoading(false);
-
       return;
     }
 
     toast.success("Modalidade criada com sucesso.");
-
     getData();
-
     setIsModalVisible(false);
-
     form.resetFields();
-
     setLoading(false);
   };
 
-  const handleRemove = async(id) => {
-    setLoading(true)
-    const success = await ModalidadeService.removeById({id});
-    
+  const handleRemove = async (id) => {
+    setLoading(true);
+    const success = await ModalidadeService.removeById({ id });
+
     if (!success) {
       toast.error(
-        "Houve um problema na removação da modalidade. Tente novamente mais tarde."
+        "Houve um problema na remoção da modalidade. Tente novamente mais tarde."
       );
-      
       setLoading(false);
-      
       return;
     }
-    
+
     toast.success("Modalidade removida com sucesso.");
-    
     getData();
-    
-    setLoading(false)
+    setLoading(false);
   };
 
   const edit = (record) => {
     form.setFieldsValue({
       nome: "",
       descricao: "",
-      status: "",
+      status: false,
       valor: "",
       ...record,
+      status: record.status === "Ativo",
     });
-
     setEditingKey(record.key);
   };
 
   const cancel = () => {
-    setEditingKey(""); // Limpa o estado de edição
+    setEditingKey("");
   };
 
   const save = async (key) => {
     try {
       const row = await form.validateFields();
-
       const newData = [...modalidades];
-
       const index = newData.findIndex((item) => key === item.key);
 
       if (index > -1) {
         const item = newData[index];
-
-        newData.splice(index, 1, { ...item, ...row });
-
+        newData.splice(index, 1, {
+          ...item,
+          ...row,
+          status: row.status ? "Ativo" : "Inativo",
+        });
         setModalidades(newData);
-
         setEditingKey("");
       }
     } catch (errInfo) {
@@ -146,7 +132,6 @@ const EditableTable = () => {
             <Button onClick={() => save(record.key)} style={{ marginRight: 8 }}>
               Salvar
             </Button>
-
             <Button onClick={cancel}>Cancelar</Button>
           </span>
         ) : (
@@ -158,9 +143,6 @@ const EditableTable = () => {
             >
               Editar
             </Button>
-
-
-
             <Button type="danger" onClick={() => handleRemove(record.id)}>
               Remover
             </Button>
@@ -197,8 +179,16 @@ const EditableTable = () => {
     children,
     ...restProps
   }) => {
-    const inputNode =
-      inputType === "number" ? <Input type="number" /> : <Input />;
+    let inputNode;
+    if (dataIndex === "status") {
+      inputNode = (
+        <Checkbox>
+          Ativo
+        </Checkbox>
+      );
+    } else {
+      inputNode = inputType === "number" ? <Input type="number" /> : <Input />;
+    }
 
     return (
       <td {...restProps}>
@@ -206,6 +196,7 @@ const EditableTable = () => {
           <Form.Item
             name={dataIndex}
             style={{ margin: 0 }}
+            valuePropName={dataIndex === "status" ? "checked" : undefined}
             rules={[{ required: true, message: `Por favor, insira ${title}` }]}
           >
             {inputNode}
@@ -229,7 +220,6 @@ const EditableTable = () => {
     }));
 
     setModalidades(newData);
-
     setLoading(false);
   };
 
@@ -239,10 +229,7 @@ const EditableTable = () => {
 
   return (
     <>
-      {/* Componente de Cabeçalho */}
       <DrawerMenu />
-
-      {/* Botão para adicionar nova modalidade */}
       <div style={{ padding: "20px" }}>
         <Button
           type="primary"
@@ -256,7 +243,6 @@ const EditableTable = () => {
           Adicionar Modalidade
         </Button>
 
-        {/* Tabela de modalidades */}
         <Form form={form} component={false}>
           <Table
             loading={loading}
@@ -272,7 +258,6 @@ const EditableTable = () => {
           />
         </Form>
 
-        {/* Modal para adicionar nova modalidade */}
         <Modal
           title="Adicionar Modalidade"
           open={isModalVisible}
@@ -283,12 +268,7 @@ const EditableTable = () => {
             <Form.Item
               name="nome"
               label="Nome"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor, insira o nome da modalidade",
-                },
-              ]}
+              rules={[{ required: true, message: "Por favor, insira o nome" }]}
             >
               <Input />
             </Form.Item>
@@ -296,9 +276,7 @@ const EditableTable = () => {
             <Form.Item
               name="descricao"
               label="Descrição"
-              rules={[
-                { required: true, message: "Por favor, insira a descrição" },
-              ]}
+              rules={[{ required: true, message: "Por favor, insira a descrição" }]}
             >
               <Input />
             </Form.Item>
@@ -306,14 +284,9 @@ const EditableTable = () => {
             <Form.Item
               name="status"
               label="Status"
-              rules={[
-                { required: true, message: "Por favor, selecione o status" },
-              ]}
+              valuePropName="checked"
             >
-              <Select>
-                <Option value="Ativo">Ativo</Option>
-                <Option value="Inativo">Inativo</Option>
-              </Select>
+              <Checkbox>Ativo</Checkbox>
             </Form.Item>
 
             <Form.Item
