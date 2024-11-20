@@ -139,17 +139,21 @@ const MainPage = () => {
   };
 
   const handleOk = async () => {
-    const values = await form.validateFields();
+    try {
+      const values = await form.validateFields();
 
-    if (editingRecord) {
-      updateAluno(values);
-    } else {
-      submitAluno(values);
+      if (editingRecord) {
+        updateAluno(values);
+      } else {
+        submitAluno(values);
+      }
+
+      setModalVisible(false);
+
+      form.resetFields();
+    } catch (error) {
+      console.error("Erro na validação:", error);
     }
-
-    setModalVisible(false);
-
-    form.resetFields();
   };
 
   const handleCancel = () => {
@@ -314,7 +318,7 @@ const MainPage = () => {
                 label="Cep"
                 rules={[{ required: true, message: "CEP é obrigatório" }]}
               >
-                <Input />
+                <Input maxLength={8} minLength={8} />
               </Form.Item>
 
               <Form.Item
