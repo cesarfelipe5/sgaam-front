@@ -127,7 +127,13 @@ const MainPage = () => {
   const handleViewDetails = async (id) => {
     const data = await getAlunoById({ id });
 
-    setEditingRecord(data);
+    const dataToView = {
+      ...data,
+      tipo: data.telefones[0].tipo,
+      numero_telefone: data.telefones[0].numero,
+    };
+
+    setEditingRecord(dataToView);
 
     setViewDetailsVisible(true);
   };
@@ -286,7 +292,7 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <Input maxLength={11} />
+                <Input maxLength={11} type="number" />
               </Form.Item>
 
               <Form.Item
@@ -300,7 +306,7 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <Input maxLength={11} minLength={7} />
+                <Input maxLength={11} minLength={7} type="number" />
               </Form.Item>
 
               <Form.Item
