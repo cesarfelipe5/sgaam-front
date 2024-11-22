@@ -17,6 +17,13 @@ const MainPage = () => {
   const [form] = Form.useForm();
   const [sortKey, setSortKey] = useState("name");
 
+  // Mock data para os planos
+  const planos = [
+    { id: 1, nome: "Mensal" },
+    { id: 2, nome: "Trimestral" },
+    { id: 3, nome: "Anual" },
+  ];
+
   const getData = async () => {
     setLoading(true);
 
@@ -215,7 +222,12 @@ const MainPage = () => {
       dataIndex: "cpf",
       key: "cpf",
     },
-
+    {
+      title: "Plano",
+      dataIndex: "plano",
+      key: "plano",
+      render: (plano) => planos.find((p) => p.id === plano)?.nome || "Não definido",
+    },
     {
       title: "Ações",
       key: "actions",
@@ -301,6 +313,19 @@ const MainPage = () => {
             cancelText="Cancelar"
           >
             <Form form={form} layout="vertical" name="studentForm">
+              <Form.Item
+                name="plano"
+                label="Plano"
+                rules={[{ required: true, message: "Plano é obrigatório" }]}
+              >
+                <Select>
+                  {planos.map((plano) => (
+                    <Select.Option key={plano.id} value={plano.id}>
+                      {plano.nome}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
               <Form.Item
                 name="nome"
                 label="Nome"
@@ -434,6 +459,10 @@ const MainPage = () => {
           >
             {editingRecord && (
               <div>
+                <p>
+                  <strong>Plano:</strong> {editingRecord.plano}
+                </p>
+                
                 <p>
                   <strong>Nome:</strong> {editingRecord.nome}
                 </p>

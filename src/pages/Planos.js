@@ -11,54 +11,48 @@ const Planos = () => {
   const [editingRecord, setEditingRecord] = useState(null);
   const [plans, setPlans] = useState([]);
   const [modalidades, setModalidades] = useState([]);
-  const [deleteRecord, setDeleteRecord] = useState(null); // Estado para o modal de confirmação de exclusão
+  const [deleteRecord, setDeleteRecord] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [form] = Form.useForm();
 
+  const mockDurations = [
+    { id: 1, label: "1 mês" },
+    { id: 2, label: "3 meses" },
+    { id: 3, label: "6 meses" },
+    { id: 4, label: "12 meses" },
+  ];
+
   const getData = async () => {
     setLoading(true);
-
     const { data } = await PlanoService.getData({});
-
     setPlans(data);
-
     setLoading(false);
   };
 
   const getDataModalidades = async () => {
     setLoading(true);
-
     const { data } = await ModalidadeService.getData({ perPage: 1000 });
-
     setModalidades(data);
-
-    setLoading(true);
+    setLoading(false);
   };
 
   const handleAddPlan = async () => {
     setLoading(true);
-
     await getDataModalidades();
-
     setEditingRecord(null);
-
     form.resetFields();
-
     setIsModalVisible(true);
   };
 
   const handleEditPlan = (record) => {
     setIsModalVisible(true);
-
     setEditingRecord(record);
-
     form.setFieldsValue(record);
   };
 
   const handleDeletePlan = (key) => {
     setPlans(plans.filter((item) => item.key !== key));
-
     setDeleteRecord(null);
   };
 
@@ -69,13 +63,12 @@ const Planos = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-
       if (editingRecord) {
+        // Editar registro existente
       } else {
+        // Adicionar novo registro
       }
-
       getData();
-
       setIsModalVisible(false);
     } catch (info) {
       console.log("Validate Failed:", info);
@@ -107,6 +100,13 @@ const Planos = () => {
             {modalidade.nome}
           </Card>
         )),
+    },
+    {
+      title: "Duração",
+      dataIndex: "duracao",
+      key: "duracao",
+      render: (duracao) =>
+        mockDurations.find((duration) => duration.id === duracao)?.label || "",
     },
     {
       title: "Preço padrão",
@@ -143,7 +143,7 @@ const Planos = () => {
       <div style={{ padding: 20 }}>
         <Button
           type="primary"
-          icon="+"
+          icon="+" 
           style={{
             marginBottom: 20,
             backgroundColor: "black",
@@ -178,10 +178,7 @@ const Planos = () => {
               label="Modalidades"
               name="modalidades"
               rules={[
-                {
-                  required: true,
-                  message: "Por favor, selecione as modalidades",
-                },
+                { required: true, message: "Por favor, selecione as modalidades" },
               ]}
             >
               <Select
@@ -196,14 +193,31 @@ const Planos = () => {
                 ))}
               </Select>
             </Form.Item>
+
+            <Form.Item
+              label="Duração do Plano"
+              name="duracao"
+              rules={[
+                { required: true, message: "Por favor, selecione a duração" },
+              ]}
+            >
+              <Select placeholder="Selecione a duração">
+                {mockDurations.map((duration) => (
+                  <Option key={duration.id} value={duration.id}>
+                    {duration.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
             <Form.Item
               label="Preço padrão"
               name="precoPadrao"
               rules={[
-                { required: true, message: "Por favor, insira o preço padrao" },
+                { required: true, message: "Por favor, insira o preço padrão" },
               ]}
             >
-              <Input prefix="R$" placeholder="Preço padrao do plano" />
+              <Input prefix="R$" placeholder="Preço padrão do plano" />
             </Form.Item>
           </Form>
         </Modal>
