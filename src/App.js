@@ -2,6 +2,7 @@ import React from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./App.css"; // Importar o CSS global
 import AulasExperimentais from "./pages/AulasExperimentais";
+import FormaPagamento from "./pages/FormaPagamento";
 import Login from "./pages/Login";
 import MainPage from "./pages/MainPage";
 import Mensalidades from "./pages/Mensalidades";
@@ -23,6 +24,7 @@ function App() {
         <Route path="/modalidades" element={<Modalidades />} />
         <Route path="/pagamentos" element={<Pagamentos />} />
         <Route path="/planos" element={<Planos />} />
+        <Route path="/formaPagamento" element={<FormaPagamento />} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/userpermissoes" element={<UsersPermissoes />} />
       </Routes>

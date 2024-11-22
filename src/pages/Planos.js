@@ -1,44 +1,64 @@
-import React, { useState } from "react";
 import { Button, Card, Form, Input, Modal, Select, Table } from "antd";
+import React, { useEffect, useState } from "react";
 import DrawerMenu from "../components/DrawerMenu";
+import { ModalidadeService } from "../services/modalidade/ModalidadeService";
+import { PlanoService } from "../services/plano/PlanoService";
 
 const { Option } = Select;
 
 const Planos = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-  const [plans, setPlans] = useState([
-    {
-      key: "1",
-      nome: "Plano Básico",
-      modalidades: ["Karatê", "Judô"],
-      valor: "R$ 100,00",
-    },
-    {
-      key: "2",
-      nome: "Plano Avançado",
-      modalidades: ["Jiu-Jitsu", "Boxe"],
-      valor: "R$ 200,00",
-    },
-  ]);
+  const [plans, setPlans] = useState([]);
+  const [modalidades, setModalidades] = useState([]);
   const [deleteRecord, setDeleteRecord] = useState(null); // Estado para o modal de confirmação de exclusão
+  const [loading, setLoading] = useState(false);
 
   const [form] = Form.useForm();
 
-  const handleAddPlan = () => {
-    setIsModalVisible(true);
+  const getData = async () => {
+    setLoading(true);
+
+    const { data } = await PlanoService.getData({});
+
+    setPlans(data);
+
+    setLoading(false);
+  };
+
+  const getDataModalidades = async () => {
+    setLoading(true);
+
+    const { data } = await ModalidadeService.getData({ perPage: 1000 });
+
+    setModalidades(data);
+
+    setLoading(true);
+  };
+
+  const handleAddPlan = async () => {
+    setLoading(true);
+
+    await getDataModalidades();
+
     setEditingRecord(null);
+
     form.resetFields();
+
+    setIsModalVisible(true);
   };
 
   const handleEditPlan = (record) => {
     setIsModalVisible(true);
+
     setEditingRecord(record);
+
     form.setFieldsValue(record);
   };
 
   const handleDeletePlan = (key) => {
     setPlans(plans.filter((item) => item.key !== key));
+
     setDeleteRecord(null);
   };
 
@@ -46,25 +66,20 @@ const Planos = () => {
     setDeleteRecord(record);
   };
 
-  const handleSave = () => {
-    form.validateFields().then((values) => {
-      const newData = [...plans];
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields();
+
       if (editingRecord) {
-        // Editando um plano existente
-        const index = newData.findIndex(
-          (item) => item.key === editingRecord.key
-        );
-        newData[index] = { ...editingRecord, ...values };
       } else {
-        // Adicionando um novo plano
-        newData.push({
-          key: `${newData.length + 1}`,
-          ...values,
-        });
       }
-      setPlans(newData);
+
+      getData();
+
       setIsModalVisible(false);
-    });
+    } catch (info) {
+      console.log("Validate Failed:", info);
+    }
   };
 
   const columns = [
@@ -78,9 +93,9 @@ const Planos = () => {
       dataIndex: "modalidades",
       key: "modalidades",
       render: (modalidades) =>
-        modalidades.map((mod) => (
+        modalidades.map((modalidade) => (
           <Card
-            key={mod}
+            key={modalidade.id}
             style={{
               display: "inline-block",
               marginRight: 8,
@@ -89,14 +104,14 @@ const Planos = () => {
               padding: "4px 8px",
             }}
           >
-            {mod}
+            {modalidade.nome}
           </Card>
         )),
     },
     {
-      title: "Valor",
-      dataIndex: "valor",
-      key: "valor",
+      title: "Preço padrão",
+      dataIndex: "precoPadrao",
+      key: "precoPadrao",
     },
     {
       title: "Ações",
@@ -118,6 +133,10 @@ const Planos = () => {
     },
   ];
 
+  useEffect(() => {
+    getData();
+  }, []);
+
   return (
     <>
       <DrawerMenu />
@@ -133,9 +152,10 @@ const Planos = () => {
           }}
           onClick={handleAddPlan}
         >
-          Novo Plano
+          Novo plano
         </Button>
-        <Table columns={columns} dataSource={plans} />
+
+        <Table columns={columns} dataSource={plans} loading={loading} />
 
         <Modal
           title={editingRecord ? "Editar Plano" : "Novo Plano"}
@@ -153,11 +173,15 @@ const Planos = () => {
             >
               <Input placeholder="Nome do plano" />
             </Form.Item>
+
             <Form.Item
               label="Modalidades"
               name="modalidades"
               rules={[
-                { required: true, message: "Por favor, selecione as modalidades" },
+                {
+                  required: true,
+                  message: "Por favor, selecione as modalidades",
+                },
               ]}
             >
               <Select
@@ -165,18 +189,21 @@ const Planos = () => {
                 placeholder="Selecione as modalidades"
                 style={{ width: "100%" }}
               >
-                <Option value="Karatê">Karatê</Option>
-                <Option value="Judô">Judô</Option>
-                <Option value="Jiu-Jitsu">Jiu-Jitsu</Option>
-                <Option value="Boxe">Boxe</Option>
+                {modalidades.map((mod) => (
+                  <Option key={mod.id} value={mod.id}>
+                    {mod.nome}
+                  </Option>
+                ))}
               </Select>
             </Form.Item>
             <Form.Item
-              label="Valor"
-              name="valor"
-              rules={[{ required: true, message: "Por favor, insira o valor" }]}
+              label="Preço padrão"
+              name="precoPadrao"
+              rules={[
+                { required: true, message: "Por favor, insira o preço padrao" },
+              ]}
             >
-              <Input prefix="R$" placeholder="Valor do plano" />
+              <Input prefix="R$" placeholder="Preço padrao do plano" />
             </Form.Item>
           </Form>
         </Modal>
@@ -190,7 +217,9 @@ const Planos = () => {
           cancelText="Cancelar"
           okButtonProps={{ danger: true }}
         >
-          <p>Tem certeza de que deseja excluir o plano "{deleteRecord?.nome}"?</p>
+          <p>
+            Tem certeza de que deseja excluir o plano "{deleteRecord?.nome}"?
+          </p>
         </Modal>
       </div>
     </>

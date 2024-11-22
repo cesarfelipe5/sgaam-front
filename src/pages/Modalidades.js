@@ -1,4 +1,4 @@
-import { Button, Form, Input, Modal, Table, Checkbox } from "antd";
+import { Button, Checkbox, Form, Input, Modal, Table } from "antd";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
@@ -6,39 +6,63 @@ import { ModalidadeService } from "../services/modalidade/ModalidadeService";
 
 const EditableTable = () => {
   const [modalidades, setModalidades] = useState([]);
-  const [editingKey, setEditingKey] = useState("");
+  const [editing, setEditing] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
-  const isEditing = (record) => record.key === editingKey;
+  const isEditing = (record) => record.id === editing?.id;
 
   const showModal = () => setIsModalVisible(true);
 
   const handleCancel = () => {
     setIsModalVisible(false);
+
     form.resetFields();
   };
 
-  const handleAdd = async (values) => {
+  const handleAddUpdate = async (values) => {
     setLoading(true);
 
-    const success = await ModalidadeService.createModalidade({
-      modalidade: { ...values, status: values.status ? "Ativo" : "Inativo" },
-    });
+    if (editing?.id) {
+      const success = await ModalidadeService.updateModalidade({
+        modalidade: { ...values, status: values.status ? "Ativo" : "Inativo" },
+        id: editing.id,
+      });
 
-    if (!success) {
-      toast.error(
-        "Houve um problema na criação da modalidade. Tente novamente mais tarde."
-      );
-      setLoading(false);
-      return;
+      if (!success) {
+        toast.error(
+          "Houve um problema na atualização da modalidade. Tente novamente mais tarde."
+        );
+        setLoading(false);
+        return;
+      }
+
+      toast.success("Modalidade atualizada com sucesso.");
+    } else {
+      const success = await ModalidadeService.createModalidade({
+        modalidade: { ...values, status: values.status ? "Ativo" : "Inativo" },
+      });
+
+      if (!success) {
+        toast.error(
+          "Houve um problema na criação da modalidade. Tente novamente mais tarde."
+        );
+
+        setLoading(false);
+
+        return;
+      }
+
+      toast.success("Modalidade criada com sucesso.");
     }
 
-    toast.success("Modalidade criada com sucesso.");
     getData();
+
     setIsModalVisible(false);
+
     form.resetFields();
+
     setLoading(false);
   };
 
@@ -50,50 +74,31 @@ const EditableTable = () => {
       toast.error(
         "Houve um problema na remoção da modalidade. Tente novamente mais tarde."
       );
+
       setLoading(false);
+
       return;
     }
 
     toast.success("Modalidade removida com sucesso.");
+
     getData();
+
     setLoading(false);
   };
 
-  const edit = (record) => {
+  const edit = (record) => () => {
     form.setFieldsValue({
       nome: "",
       descricao: "",
-      status: false,
       valor: "",
       ...record,
       status: record.status === "Ativo",
     });
-    setEditingKey(record.key);
-  };
 
-  const cancel = () => {
-    setEditingKey("");
-  };
+    setEditing(record);
 
-  const save = async (key) => {
-    try {
-      const row = await form.validateFields();
-      const newData = [...modalidades];
-      const index = newData.findIndex((item) => key === item.key);
-
-      if (index > -1) {
-        const item = newData[index];
-        newData.splice(index, 1, {
-          ...item,
-          ...row,
-          status: row.status ? "Ativo" : "Inativo",
-        });
-        setModalidades(newData);
-        setEditingKey("");
-      }
-    } catch (errInfo) {
-      console.log("Validate Failed:", errInfo);
-    }
+    setIsModalVisible(true);
   };
 
   const columns = [
@@ -124,31 +129,17 @@ const EditableTable = () => {
     {
       title: "Ações",
       key: "acoes",
-      render: (text, record) => {
-        const editable = isEditing(record);
+      render: (text, record) => (
+        <>
+          <Button onClick={edit(record)} style={{ marginRight: 8 }}>
+            Editar
+          </Button>
 
-        return editable ? (
-          <span>
-            <Button onClick={() => save(record.key)} style={{ marginRight: 8 }}>
-              Salvar
-            </Button>
-            <Button onClick={cancel}>Cancelar</Button>
-          </span>
-        ) : (
-          <>
-            <Button
-              disabled={editingKey !== ""}
-              onClick={() => edit(record)}
-              style={{ marginRight: 8 }}
-            >
-              Editar
-            </Button>
-            <Button type="danger" onClick={() => handleRemove(record.id)}>
-              Remover
-            </Button>
-          </>
-        );
-      },
+          <Button type="danger" onClick={() => handleRemove(record.id)}>
+            Remover
+          </Button>
+        </>
+      ),
     },
   ];
 
@@ -169,57 +160,18 @@ const EditableTable = () => {
     };
   });
 
-  const EditableCell = ({
-    editing,
-    dataIndex,
-    title,
-    inputType,
-    record,
-    index,
-    children,
-    ...restProps
-  }) => {
-    let inputNode;
-    if (dataIndex === "status") {
-      inputNode = (
-        <Checkbox>
-          Ativo
-        </Checkbox>
-      );
-    } else {
-      inputNode = inputType === "number" ? <Input type="number" /> : <Input />;
-    }
-
-    return (
-      <td {...restProps}>
-        {editing ? (
-          <Form.Item
-            name={dataIndex}
-            style={{ margin: 0 }}
-            valuePropName={dataIndex === "status" ? "checked" : undefined}
-            rules={[{ required: true, message: `Por favor, insira ${title}` }]}
-          >
-            {inputNode}
-          </Form.Item>
-        ) : (
-          children
-        )}
-      </td>
-    );
-  };
-
   const getData = async () => {
     setLoading(true);
 
     const { data } = await ModalidadeService.getData();
 
-    const newData = data.map((element, index) => ({
-      ...element,
-      key: element.id || index,
-      status: element.status ? "Ativo" : "Inativo",
+    const newData = data.map((item) => ({
+      ...item,
+      status: item.status ? "Ativo" : "Inativo",
     }));
 
     setModalidades(newData);
+
     setLoading(false);
   };
 
@@ -240,31 +192,26 @@ const EditableTable = () => {
             color: "#000",
           }}
         >
-          Adicionar Modalidade
+          Adicionar modalidade
         </Button>
 
         <Form form={form} component={false}>
           <Table
             loading={loading}
-            components={{
-              body: {
-                cell: EditableCell,
-              },
-            }}
             columns={mergedColumns}
             dataSource={modalidades}
             style={{ marginTop: "20px" }}
-            pagination={{ pageSize: 5 }}
+            pagination={false}
           />
         </Form>
 
         <Modal
-          title="Adicionar Modalidade"
+          title=" Adicionar modalidade"
           open={isModalVisible}
           onCancel={handleCancel}
           footer={null}
         >
-          <Form form={form} layout="vertical" onFinish={handleAdd}>
+          <Form form={form} layout="vertical" onFinish={handleAddUpdate}>
             <Form.Item
               name="nome"
               label="Nome"
@@ -276,16 +223,14 @@ const EditableTable = () => {
             <Form.Item
               name="descricao"
               label="Descrição"
-              rules={[{ required: true, message: "Por favor, insira a descrição" }]}
+              rules={[
+                { required: true, message: "Por favor, insira a descrição" },
+              ]}
             >
               <Input />
             </Form.Item>
 
-            <Form.Item
-              name="status"
-              label="Status"
-              valuePropName="checked"
-            >
+            <Form.Item name="status" label="Status" valuePropName="checked">
               <Checkbox>Ativo</Checkbox>
             </Form.Item>
 
@@ -307,7 +252,7 @@ const EditableTable = () => {
                   color: "#000",
                 }}
               >
-                Adicionar
+                {editing?.id ? "Atualizar" : "Adicionar"}
               </Button>
             </Form.Item>
           </Form>

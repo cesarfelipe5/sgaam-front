@@ -1,45 +1,35 @@
 import { Api } from "../api";
 
-export const AlunosService = {
+export const PlanoService = {
   getData: async ({ perPage = 10, currentPage = 1 }) => {
     const { data } = await Api.get(
-      `/aluno?perPage=${perPage}&currentPage=${currentPage}`
+      `/plano?perPage=${perPage}&currentPage=${currentPage}`
     );
 
     return data;
   },
 
   getById: async ({ id }) => {
-    const { data } = await Api.get(`/aluno/${id}`);
+    const { data } = await Api.get(`/plano/${id}`);
 
     return data;
   },
 
-  createAluno: async ({ aluno }) => {
+  createPlano: async ({ plano, modalidades }) => {
     const dataToCreate = {
-      nome: aluno.nome,
-      cpf: aluno.cpf,
-      rg: aluno.rg,
-      uf: aluno.uf.toUpperCase(),
-      cidade: aluno.cidade,
-      cep: aluno.cep,
-      numero: aluno.numero,
-      bairro: aluno.bairro,
-      logradouro: aluno.logradouro,
-      telefones: [
-        {
-          tipo: aluno.tipo,
-          numero: aluno.numero_telefone,
-        },
-      ],
+      nome: plano.nome,
+      descricao: plano.descricao,
+      // inicioVigencia: "2024-11-12T02:22:53.000Z",
+      // fimVigencia: "2025-11-12T02:22:53.000Z",
+      precoPadrao: plano.precoPadrao,
     };
 
-    const { data } = await Api.post(`/aluno`, dataToCreate);
+    const { data } = await Api.post(`/plano`, dataToCreate);
 
     return data?.success;
   },
 
-  updateAluno: async ({ aluno, id }) => {
+  updatePlano: async ({ aluno, id }) => {
     const dataToUpdate = {
       nome: aluno.nome,
       cpf: aluno.cpf,
@@ -58,13 +48,13 @@ export const AlunosService = {
       ],
     };
 
-    const { data } = await Api.put(`/aluno/${id}`, dataToUpdate);
+    const { data } = await Api.put(`/plano/${id}`, dataToUpdate);
 
     return data.status;
   },
 
   removeById: async ({ id }) => {
-    const { data } = await Api.delete(`/aluno/${id}`);
+    const { data } = await Api.delete(`/plano/${id}`);
 
     return data?.success;
   },

@@ -140,6 +140,7 @@ const DrawerMenu = () => {
               Mensalidades
             </Link>
           </li>
+
           <li>
             <Link
               to="/planos"
@@ -147,6 +148,16 @@ const DrawerMenu = () => {
               style={{ color: "#fff", textDecoration: "none" }}
             >
               Planos
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              to="/formaPagamento"
+              onClick={closeMenu}
+              style={{ color: "#fff", textDecoration: "none" }}
+            >
+              Formas de pagamento
             </Link>
           </li>
 

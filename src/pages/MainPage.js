@@ -20,7 +20,7 @@ const MainPage = () => {
   const getData = async () => {
     setLoading(true);
 
-    const { data } = await AlunosService.getData();
+    const { data } = await AlunosService.getData({});
 
     setDataSource(data);
 
@@ -130,6 +130,7 @@ const MainPage = () => {
     toast.success("Aluno removido com sucesso.");
 
     setDeleteConfirmVisible(false); // Fechar o modal de confirmação
+
     setRecordToDelete(null);
 
     await getData();
@@ -165,8 +166,7 @@ const MainPage = () => {
     } catch (error) {
       console.error("Erro na validação:", error);
     }
-
-  }
+  };
   const handleCancel = () => {
     setModalVisible(false);
 
@@ -403,7 +403,7 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <Select >
+                <Select>
                   <Select.Option value="Residencial">Residencial</Select.Option>
                   <Select.Option value="Comercial">Comercial</Select.Option>
                   <Select.Option value="Celular">Celular</Select.Option>
