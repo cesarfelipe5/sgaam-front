@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
-import InputMask from "react-input-mask";
+import { maskCEP, maskCPF, maskPhone } from "../utils/mask";
 
 const MainPage = () => {
   const [dataSource, setDataSource] = useState([]);
@@ -346,26 +346,16 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <InputMask mask="999.999.999-99" maskChar={null}>
-                  {(inputProps) => <Input {...inputProps} />}
-                </InputMask>
-              </Form.Item>
 
-              <Form.Item
-                name="rg"
-                label="RG"
-                rules={[
-                  { required: true, message: "RG é obrigatório" },
-                  {
-                    pattern: /^[0-9]{7,11}$/,
-                    message: "RG deve conter entre 7 a 11 números",
-                  },
-                ]}
-              >
-                <InputMask mask="99999999999" maskChar={null}>
-                  {(inputProps) => <Input {...inputProps} />}
-                </InputMask>
-              </Form.Item>
+                <Input
+                  maxLength={14}
+                  onChange={(e) => {
+                    const maskedValue = maskCPF({ value: e.target.value });                  
+                    form.setFieldsValue({ cpf: maskedValue });
+                  }}
+                  placeholder="123.456.789-00"
+                />
+                </Form.Item>
 
               <Form.Item
                 name="cep"
@@ -378,11 +368,15 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <InputMask mask="99999-999" maskChar={null}>
-                  {(inputProps) => <Input {...inputProps} />}
-                </InputMask>
+                <Input
+                  maxLength={9}
+                  onChange={(e) => {
+                    const maskedValue = maskCEP({ value: e.target.value });
+                    form.setFieldsValue({ cep: maskedValue });
+                  }}
+                  placeholder="00000-000"
+                />
               </Form.Item>
-
 
               <Form.Item
                 name="logradouro"
@@ -454,18 +448,17 @@ const MainPage = () => {
                 rules={[
                   { required: true, message: "Número é obrigatório" },
                   {
-                    pattern: /^\(\d{2}\) \d{5}-\d{3,4}$/,
+                    pattern: /^\(\d{2}\) \d \d{4}-\d{4}$/,
                     message: "O número deve estar com DDD",
                   },
                 ]}
               >
-                <InputMask
-                  mask="(99) 99999-9999"
-                  maskChar={null}
-                  placeholder="(11) 99999-9999"
-                >
-                  {(inputProps) => <Input {...inputProps} />}
-                </InputMask>
+                <Input 
+                maxLength={16}
+                onChange={e => {
+                  const maskedTelefone = maskPhone({ value: e.target.value });
+                  form.setFieldsValue({ numero_telefone: maskedTelefone })
+                }} />
               </Form.Item>
             </Form>
           </Modal>
