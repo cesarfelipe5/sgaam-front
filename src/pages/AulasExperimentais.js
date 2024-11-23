@@ -1,46 +1,75 @@
-import React, { useState } from 'react';
-import { Button, Table, Modal, Form, Input, Select, Space } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import DrawerMenu from '../components/DrawerMenu';
+import { PlusOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  notification,
+  Select,
+  Space,
+  Table,
+} from "antd";
+import moment from "moment";
+import React, { useEffect, useState } from "react";
 import InputMask from "react-input-mask";
-
-// Dados simulados
-const initialData = [
-  {
-    key: '1',
-    studentName: 'John Doe',
-    cpf: '123.456.789-00',
-    modality: 'Kung Fu',
-    date: '2024-09-07',
-    time: '14:00',
-  },
-  {
-    key: '2',
-    studentName: 'Jane Smith',
-    cpf: '987.654.321-00',
-    modality: 'Xadrez',
-    date: '2024-09-08',
-    time: '16:00',
-  },
-];
+import DrawerMenu from "../components/DrawerMenu";
+import { AulaExperimentalService } from "../services/aulaExperimental/AulaExperimentalService";
+import { ModalidadeService } from "../services/modalidade/ModalidadeService";
 
 const AulasExperimentais = () => {
-  const [dataSource, setDataSource] = useState(initialData);
+  const [loading, setLoading] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
+  const [modalidades, setModalidades] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [form] = Form.useForm();
 
-  const handleAdd = () => {
+  const { Option } = Select;
+
+  const getData = async () => {
+    setLoading(true);
+
+    const { data } = await AulaExperimentalService.getData({});
+
+    setDataSource(data);
+
+    setLoading(false);
+  };
+
+  const getDataModalidades = async () => {
+    setLoading(true);
+
+    const { data } = await ModalidadeService.getData({ perPage: 1000 });
+
+    setModalidades(data);
+
+    setLoading(false);
+  };
+
+  const handleAdd = async () => {
+    await getDataModalidades();
+
     setEditingRecord(null);
+
     form.resetFields();
+
     setModalVisible(true);
   };
 
-  const handleEdit = (record) => {
-    setEditingRecord(record);
+  const handleEdit = async (record) => {
+    if (modalidades.length === 0) {
+      await getDataModalidades(); // Carrega as modalidades, se necessário
+    }
+
     form.setFieldsValue({
       ...record,
+      modalidade: record.modalidade.id, // Preenche com o ID da modalidade
+      // date: moment(record.date).format("YYYY-MM-DD"), // Formata a data corretamente
+      // time: record.hour, // Garante que o horário seja preenchido corretamente
     });
+
+    setEditingRecord(record);
+
     setModalVisible(true);
   };
 
@@ -48,26 +77,41 @@ const AulasExperimentais = () => {
     setDataSource(dataSource.filter((item) => item.key !== key));
   };
 
-  const handleOk = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        const newValues = {
-          ...values,
-        };
-        if (editingRecord) {
-          // Editar o registro existente
-          setDataSource(dataSource.map((item) => (item.key === editingRecord.key ? { ...newValues, key: editingRecord.key } : item)));
-        } else {
-          // Adicionar novo registro
-          setDataSource([...dataSource, { ...newValues, key: Date.now().toString() }]);
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      if (editingRecord) {
+      } else {
+        const { success } =
+          await AulaExperimentalService.createAulaExperimental({
+            aulaExperimental: values,
+          });
+
+        if (!success) {
+          notification.error({
+            message: "Erro ao criar aula experimental",
+            description:
+              "Houve um problema ao criar uma aula experimental. Tente novamente mais tarde.",
+          });
+
+          setLoading(false);
+
+          return;
         }
-        setModalVisible(false);
-        form.resetFields();
-      })
-      .catch((info) => {
-        console.log('Validate Failed:', info);
-      });
+
+        notification.success({
+          message: "Aula experimental!",
+          description: "Aula experimental criada com sucesso.",
+        });
+      }
+
+      setModalVisible(false);
+
+      form.resetFields();
+    } catch (info) {
+      console.log("Validate Failed:", info);
+    }
   };
 
   const handleCancel = () => {
@@ -77,60 +121,75 @@ const AulasExperimentais = () => {
 
   const columns = [
     {
-      title: 'Nome do Aluno',
-      dataIndex: 'studentName',
-      key: 'studentName',
+      title: "Nome do Aluno",
+      dataIndex: "nome",
+      key: "nome",
     },
     {
-      title: 'CPF',
-      dataIndex: 'cpf',
-      key: 'cpf',
+      title: "CPF",
+      dataIndex: "cpf",
+      key: "cpf",
     },
     {
-      title: 'Modalidade',
-      dataIndex: 'modality',
-      key: 'modality',
+      title: "Modalidade",
+      dataIndex: "modalidade",
+      key: "modalidade",
+      render: (_, record) => record.modalidade.nome,
     },
     {
-      title: 'Data',
-      dataIndex: 'date',
-      key: 'date',
+      title: "Data",
+      dataIndex: "date",
+      key: "date",
+      render: (_, record) => moment(record.date).format("DD/MM/YYYY"),
     },
     {
-      title: 'Horário',
-      dataIndex: 'time',
-      key: 'time',
+      title: "Horário",
+      dataIndex: "hour",
+      key: "hour",
     },
     {
-      title: 'Ações',
-      key: 'actions',
+      title: "Ações",
+      key: "actions",
       render: (_, record) => (
         <Space>
           <Button onClick={() => handleEdit(record)}>Editar</Button>
-          <Button danger onClick={() => handleDelete(record.key)}>Excluir</Button>
+
+          <Button danger onClick={() => handleDelete(record.key)}>
+            Excluir
+          </Button>
         </Space>
       ),
     },
   ];
 
+  useEffect(() => {
+    getData();
+  }, []);
+
   return (
     <div>
       <DrawerMenu />
-      <div style={{ padding: '16px' }}>
-        <Space style={{ marginBottom: '16px' }}>
+      <div style={{ padding: "16px" }}>
+        <Space style={{ marginBottom: "16px" }}>
           <Button
-            style={{ background: 'black', color: 'white' }}
+            style={{ background: "black", color: "white" }}
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleAdd}
           >
-            Registrar Aula
+            Registrar aula
           </Button>
         </Space>
-        <Table columns={columns} dataSource={dataSource} pagination={false} />
+        <Table
+          columns={columns}
+          dataSource={dataSource}
+          pagination={false}
+          loading={loading}
+        />
+
         <Modal
-          title={editingRecord ? 'Editar Aula' : 'Registrar Aula'}
-          visible={modalVisible}
+          title={editingRecord ? "Editar aula" : "Registrar aula"}
+          open={modalVisible}
           onOk={handleOk}
           onCancel={handleCancel}
           okText="Salvar"
@@ -138,49 +197,55 @@ const AulasExperimentais = () => {
         >
           <Form form={form} layout="vertical" name="lessonForm">
             <Form.Item
-              name="studentName"
+              name="nome"
               label="Nome do Aluno"
-              rules={[{ required: true, message: 'Nome do aluno é obrigatório' }]}
+              rules={[
+                { required: true, message: "Nome do aluno é obrigatório" },
+              ]}
             >
               <Input />
             </Form.Item>
+
             <Form.Item
-                name="cpf"
-                label="CPF"
-                rules={[
-                  { required: true, message: "CPF é obrigatório" },
-                  {
-                    pattern: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
-                    message: "CPF deve estar no formato 123.456.789-00",
-                  },
-                ]}
-              >
-                <InputMask mask="999.999.999-99" maskChar={null}>
-                  {(inputProps) => <Input {...inputProps} />}
-                </InputMask>
-              </Form.Item>
+              name="cpf"
+              label="CPF"
+              rules={[
+                { required: true, message: "CPF é obrigatório" },
+                {
+                  // pattern: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
+                  // message: "CPF deve estar no formato 123.456.789-00",
+                },
+              ]}
+            >
+              <InputMask mask="999.999.999-99" maskChar={null}>
+                {(inputProps) => <Input {...inputProps} />}
+              </InputMask>
+            </Form.Item>
+
             <Form.Item
-              name="modality"
+              name="modalidade"
               label="Modalidade"
-              rules={[{ required: true, message: 'Modalidade é obrigatória' }]}
+              rules={[{ required: true, message: "Modalidade é obrigatória" }]}
             >
               <Select>
-                <Select.Option value="Hapkido">Hapkido</Select.Option>
-                <Select.Option value="Kung Fu">Kung Fu</Select.Option>
-                <Select.Option value="Xadrez">Xadrez</Select.Option>
+                {modalidades.map((mod) => (
+                  <Option key={mod.id} value={mod.id}>
+                    {mod.nome}
+                  </Option>
+                ))}
               </Select>
             </Form.Item>
             <Form.Item
               name="date"
               label="Data"
-              rules={[{ required: true, message: 'Data é obrigatória' }]}
+              rules={[{ required: true, message: "Data é obrigatória" }]}
             >
               <Input type="date" />
             </Form.Item>
             <Form.Item
-              name="time"
+              name="hour"
               label="Horário"
-              rules={[{ required: true, message: 'Horário é obrigatório' }]}
+              rules={[{ required: true, message: "Horário é obrigatório" }]}
             >
               <Input type="time" />
             </Form.Item>

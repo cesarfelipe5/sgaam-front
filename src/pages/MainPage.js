@@ -1,10 +1,10 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, Form, Input, Modal, Select, Space, Spin, Table } from "antd";
 import React, { useEffect, useState } from "react";
+import InputMask from "react-input-mask";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
-import InputMask from "react-input-mask";
 
 const MainPage = () => {
   const [dataSource, setDataSource] = useState([]);
@@ -17,6 +17,18 @@ const MainPage = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [sortKey, setSortKey] = useState("name");
+
+  const maskCPF = ({ value }) => {
+    value = value.replace(/\D/g, "");
+
+    if (value.length <= 11) {
+      value = value.replace(/(\d{3})(\d)/, "$1.$2");
+      value = value.replace(/(\d{3})(\d)/, "$1.$2");
+      value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    }
+
+    return value;
+  };
 
   // Mock data para os planos
   const planos = [
@@ -227,7 +239,8 @@ const MainPage = () => {
       title: "Plano",
       dataIndex: "plano",
       key: "plano",
-      render: (plano) => planos.find((p) => p.id === plano)?.nome || "Não definido",
+      render: (plano) =>
+        planos.find((p) => p.id === plano)?.nome || "Não definido",
     },
     {
       title: "Ações",
@@ -346,9 +359,14 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <InputMask mask="999.999.999-99" maskChar={null}>
-                  {(inputProps) => <Input {...inputProps} />}
-                </InputMask>
+                <Input
+                  onChange={(e) => {
+                    const maskedValue = maskCPF(e.target.value);
+
+                    form.setFieldsValue({ cpf: maskedValue });
+                  }}
+                  placeholder="123.456.789-00"
+                />
               </Form.Item>
 
               <Form.Item
@@ -382,7 +400,6 @@ const MainPage = () => {
                   {(inputProps) => <Input {...inputProps} />}
                 </InputMask>
               </Form.Item>
-
 
               <Form.Item
                 name="logradouro"
