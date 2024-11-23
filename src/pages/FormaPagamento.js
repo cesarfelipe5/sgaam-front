@@ -37,7 +37,7 @@ const FormaPagamento = () => {
 
     if (!success) {
       toast.error(
-        "Houve um problema na atualição da forma de pagamento. Tente novamente mais tarde."
+        "Houve um problema na remoção da forma de pagamento. Tente novamente mais tarde."
       );
 
       setLoading(false);
