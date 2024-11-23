@@ -1,5 +1,6 @@
 import { Button, Card, Form, Input, Modal, Select, Table } from "antd";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { ModalidadeService } from "../services/modalidade/ModalidadeService";
 import { PlanoService } from "../services/plano/PlanoService";
@@ -33,7 +34,7 @@ const Planos = () => {
 
     setModalidades(data);
 
-    setLoading(true);
+    setLoading(false);
   };
 
   const handleAddPlan = async () => {
@@ -48,16 +49,60 @@ const Planos = () => {
     setIsModalVisible(true);
   };
 
-  const handleEditPlan = (record) => {
+  // const handleEditPlan = (record) => {
+  //   setEditingRecord({
+  //     ...record,
+  //     modalidades: record.modalidades.map((modalidade) => modalidade.id),
+  //   });
+
+  //   form.setFieldsValue(record);
+
+  //   setIsModalVisible(true);
+  // };
+
+  const handleEditPlan = async (record) => {
+    // Garante que as modalidades estão carregadas
+    if (modalidades.length === 0) {
+      await getDataModalidades(); // Carrega as modalidades, se necessário
+    }
+
+    // // Ajusta o formato das modalidades para selecionar apenas os IDs
+    // setEditingRecord({
+    //   ...record,
+    //   modalidades: record.modalidades.map((modalidade) => modalidade.id),
+    // });
+
+    // Configura os valores iniciais do formulário
+    form.setFieldsValue({
+      ...record,
+      modalidades: record.modalidades.map((modalidade) => modalidade.id),
+    });
+
     setIsModalVisible(true);
-
-    setEditingRecord(record);
-
-    form.setFieldsValue(record);
   };
 
-  const handleDeletePlan = (key) => {
-    setPlans(plans.filter((item) => item.key !== key));
+  const handleDeletePlan = async (id) => {
+    setLoading(true);
+
+    const { success } = await PlanoService.removeById({
+      id,
+    });
+
+    if (!success) {
+      toast.error(
+        "Houve um problema na remoção do plano. Tente novamente mais tarde."
+      );
+
+      setLoading(false);
+
+      return;
+    }
+
+    toast.success("Plano removido com sucesso.");
+
+    setLoading(false);
+
+    getData();
 
     setDeleteRecord(null);
   };
@@ -71,7 +116,44 @@ const Planos = () => {
       const values = await form.validateFields();
 
       if (editingRecord) {
+        setLoading(true);
+
+        const { success } = await PlanoService.updatePlano({
+          plano: values,
+          id: editingRecord.id,
+        });
+
+        if (!success) {
+          toast.error(
+            "Houve um problema na atualização do plano. Tente novamente mais tarde."
+          );
+
+          setLoading(false);
+
+          return;
+        }
+
+        toast.success("Plano atualizado com sucesso.");
+
+        setLoading(false);
       } else {
+        setLoading(true);
+
+        const { success } = await PlanoService.createPlano({ plano: values });
+
+        if (!success) {
+          toast.error(
+            "Houve um problema na criação do plano. Tente novamente mais tarde."
+          );
+
+          setLoading(false);
+
+          return;
+        }
+
+        toast.success("Plano criado com sucesso.");
+
+        setLoading(false);
       }
 
       getData();
@@ -82,11 +164,20 @@ const Planos = () => {
     }
   };
 
+  const handleOnCancel = () => {
+    setIsModalVisible(false);
+  };
+
   const columns = [
     {
-      title: "Nome do Plano",
+      title: "Nome do plano",
       dataIndex: "nome",
       key: "nome",
+    },
+    {
+      title: "Descrição",
+      dataIndex: "descricao",
+      key: "descricao",
     },
     {
       title: "Modalidades",
@@ -160,18 +251,28 @@ const Planos = () => {
         <Modal
           title={editingRecord ? "Editar Plano" : "Novo Plano"}
           open={isModalVisible}
-          onCancel={() => setIsModalVisible(false)}
+          onCancel={handleOnCancel}
           onOk={handleSave}
           okText="Salvar"
           cancelText="Cancelar"
         >
           <Form form={form} layout="vertical">
             <Form.Item
-              label="Nome do Plano"
+              label="Nome do plano"
               name="nome"
               rules={[{ required: true, message: "Por favor, insira o nome" }]}
             >
               <Input placeholder="Nome do plano" />
+            </Form.Item>
+
+            <Form.Item
+              label="Descrição"
+              name="descricao"
+              rules={[
+                { required: true, message: "Por favor, insira uma descrição" },
+              ]}
+            >
+              <Input placeholder="Descrição" />
             </Form.Item>
 
             <Form.Item
@@ -196,6 +297,7 @@ const Planos = () => {
                 ))}
               </Select>
             </Form.Item>
+
             <Form.Item
               label="Preço padrão"
               name="precoPadrao"
@@ -212,7 +314,7 @@ const Planos = () => {
           title="Confirmar Exclusão"
           open={!!deleteRecord}
           onCancel={() => setDeleteRecord(null)}
-          onOk={() => handleDeletePlan(deleteRecord?.key)}
+          onOk={() => handleDeletePlan(deleteRecord?.id)}
           okText="Excluir"
           cancelText="Cancelar"
           okButtonProps={{ danger: true }}

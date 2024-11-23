@@ -15,18 +15,17 @@ export const PlanoService = {
     return data;
   },
 
-  createPlano: async ({ plano, modalidades }) => {
+  createPlano: async ({ plano }) => {
     const dataToCreate = {
       nome: plano.nome,
       descricao: plano.descricao,
-      // inicioVigencia: "2024-11-12T02:22:53.000Z",
-      // fimVigencia: "2025-11-12T02:22:53.000Z",
       precoPadrao: plano.precoPadrao,
+      modalidadeIds: plano.modalidades,
     };
 
     const { data } = await Api.post(`/plano`, dataToCreate);
 
-    return data?.success;
+    return data;
   },
 
   updatePlano: async ({ aluno, id }) => {
@@ -56,6 +55,6 @@ export const PlanoService = {
   removeById: async ({ id }) => {
     const { data } = await Api.delete(`/plano/${id}`);
 
-    return data?.success;
+    return data;
   },
 };
