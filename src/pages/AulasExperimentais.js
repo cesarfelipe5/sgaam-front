@@ -234,16 +234,21 @@ const AulasExperimentais = () => {
               rules={[
                 { required: true, message: "CPF é obrigatório" },
                 {
-                  // pattern: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
-                  // message: "CPF deve estar no formato 123.456.789-00",
+                  pattern: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
+                  message: "CPF deve estar no formato 123.456.789-00",
                 },
               ]}
             >
-              <InputMask mask="999.999.999-99" maskChar={null}>
-                {(inputProps) => <Input {...inputProps} />}
-              </InputMask>
-            </Form.Item>
 
+              <Input
+                maxLength={14}
+                onChange={(e) => {
+                  const maskedValue = maskCPF({ value: e.target.value });
+                  form.setFieldsValue({ cpf: maskedValue });
+                }}
+                placeholder="123.456.789-00"
+              />
+            </Form.Item>
             <Form.Item
               name="modalidade"
               label="Modalidade"
