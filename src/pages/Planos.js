@@ -1,6 +1,15 @@
-import { Button, Card, Form, Input, Modal, Select, Table } from "antd";
+import {
+  Button,
+  Card,
+  Form,
+  Input,
+  Modal,
+  notification,
+  Select,
+  Table,
+} from "antd";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { ModalidadeService } from "../services/modalidade/ModalidadeService";
 import { PlanoService } from "../services/plano/PlanoService";
@@ -43,22 +52,15 @@ const Planos = () => {
 
   const handleAddPlan = async () => {
     setLoading(true);
+
     await getDataModalidades();
+
     setEditingRecord(null);
+
     form.resetFields();
+
     setIsModalVisible(true);
   };
-
-  // const handleEditPlan = (record) => {
-  //   setEditingRecord({
-  //     ...record,
-  //     modalidades: record.modalidades.map((modalidade) => modalidade.id),
-  //   });
-
-  //   form.setFieldsValue(record);
-
-  //   setIsModalVisible(true);
-  // };
 
   const handleEditPlan = async (record) => {
     // Garante que as modalidades estão carregadas
@@ -66,17 +68,13 @@ const Planos = () => {
       await getDataModalidades(); // Carrega as modalidades, se necessário
     }
 
-    // // Ajusta o formato das modalidades para selecionar apenas os IDs
-    // setEditingRecord({
-    //   ...record,
-    //   modalidades: record.modalidades.map((modalidade) => modalidade.id),
-    // });
-
     // Configura os valores iniciais do formulário
     form.setFieldsValue({
       ...record,
       modalidades: record.modalidades.map((modalidade) => modalidade.id),
     });
+
+    setEditingRecord(record);
 
     setIsModalVisible(true);
   };
@@ -89,16 +87,21 @@ const Planos = () => {
     });
 
     if (!success) {
-      toast.error(
-        "Houve um problema na remoção do plano. Tente novamente mais tarde."
-      );
+      notification.error({
+        message: "Erro na remoção do plano",
+        description:
+          "Houve um problema na remoção do plano. Tente novamente mais tarde.",
+      });
 
       setLoading(false);
 
       return;
     }
 
-    toast.success("Plano removido com sucesso.");
+    notification.success({
+      message: "Plano removido!",
+      description: "Plano removido com sucesso.",
+    });
 
     setLoading(false);
 
@@ -114,7 +117,8 @@ const Planos = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      if (editingRecord) {
+
+      if (editingRecord?.id) {
         setLoading(true);
 
         const { success } = await PlanoService.updatePlano({
@@ -123,16 +127,21 @@ const Planos = () => {
         });
 
         if (!success) {
-          toast.error(
-            "Houve um problema na atualização do plano. Tente novamente mais tarde."
-          );
+          notification.error({
+            message: "Erro na atualização do plano.",
+            description:
+              "Houve um problema na atualização do plano. Tente novamente mais tarde.",
+          });
 
           setLoading(false);
 
           return;
         }
 
-        toast.success("Plano atualizado com sucesso.");
+        notification.success({
+          message: "Plano atualizado",
+          description: "Plano atualizado com sucesso.",
+        });
 
         setLoading(false);
       } else {
@@ -141,20 +150,27 @@ const Planos = () => {
         const { success } = await PlanoService.createPlano({ plano: values });
 
         if (!success) {
-          toast.error(
-            "Houve um problema na criação do plano. Tente novamente mais tarde."
-          );
+          notification.error({
+            message: "Erro na criação do plano.",
+            description:
+              "Houve um problema na criação do plano. Tente novamente mais tarde.",
+          });
 
           setLoading(false);
 
           return;
         }
 
-        toast.success("Plano criado com sucesso.");
+        notification.success({
+          message: "Plano criado",
+          description: "Plano criado com sucesso.",
+        });
 
         setLoading(false);
       }
+
       getData();
+
       setIsModalVisible(false);
     } catch (info) {
       console.log("Validate Failed:", info);
