@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
+import InputMask from "react-input-mask";
 
 const MainPage = () => {
   const [dataSource, setDataSource] = useState([]);
@@ -340,13 +341,14 @@ const MainPage = () => {
                 rules={[
                   { required: true, message: "CPF é obrigatório" },
                   {
-                    pattern: /^(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{11})$/,
-                    message:
-                      "CPF deve ser válido, no formato 123.456.789-00 ou apenas números",
+                    pattern: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
+                    message: "CPF deve estar no formato 123.456.789-00",
                   },
                 ]}
               >
-                <Input maxLength={11} type="number" />
+                <InputMask mask="999.999.999-99" maskChar={null}>
+                  {(inputProps) => <Input {...inputProps} />}
+                </InputMask>
               </Form.Item>
 
               <Form.Item
@@ -360,16 +362,27 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <Input maxLength={11} minLength={7} type="number" />
+                <InputMask mask="99999999999" maskChar={null}>
+                  {(inputProps) => <Input {...inputProps} />}
+                </InputMask>
               </Form.Item>
 
               <Form.Item
                 name="cep"
-                label="Cep"
-                rules={[{ required: true, message: "CEP é obrigatório" }]}
+                label="CEP"
+                rules={[
+                  { required: true, message: "CEP é obrigatório" },
+                  {
+                    pattern: /^\d{5}-\d{3}$/,
+                    message: "CEP deve estar no formato 12345-678",
+                  },
+                ]}
               >
-                <Input minLength={8} maxLength={8} />
+                <InputMask mask="99999-999" maskChar={null}>
+                  {(inputProps) => <Input {...inputProps} />}
+                </InputMask>
               </Form.Item>
+
 
               <Form.Item
                 name="logradouro"
@@ -441,12 +454,18 @@ const MainPage = () => {
                 rules={[
                   { required: true, message: "Número é obrigatório" },
                   {
-                    pattern: /^(\d{10}|\d{11})$/,
-                    message: "O número deve conter 10 ou 11 dígitos",
+                    pattern: /^\(\d{2}\) \d{5}-\d{3,4}$/,
+                    message: "O número deve estar com DDD",
                   },
                 ]}
               >
-                <Input maxLength={11} />
+                <InputMask
+                  mask="(99) 99999-9999"
+                  maskChar={null}
+                  placeholder="(11) 99999-9999"
+                >
+                  {(inputProps) => <Input {...inputProps} />}
+                </InputMask>
               </Form.Item>
             </Form>
           </Modal>
@@ -462,7 +481,7 @@ const MainPage = () => {
                 <p>
                   <strong>Plano:</strong> {editingRecord.plano}
                 </p>
-                
+
                 <p>
                   <strong>Nome:</strong> {editingRecord.nome}
                 </p>

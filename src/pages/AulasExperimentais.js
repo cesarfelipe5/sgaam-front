@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Table, Modal, Form, Input, Select, Space } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import DrawerMenu from '../components/DrawerMenu';
+import InputMask from "react-input-mask";
 
 // Dados simulados
 const initialData = [
@@ -144,12 +145,20 @@ const AulasExperimentais = () => {
               <Input />
             </Form.Item>
             <Form.Item
-              name="cpf"
-              label="CPF"
-              rules={[{ required: true, message: 'CPF é obrigatório' }]}
-            >
-              <Input />
-            </Form.Item>
+                name="cpf"
+                label="CPF"
+                rules={[
+                  { required: true, message: "CPF é obrigatório" },
+                  {
+                    pattern: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
+                    message: "CPF deve estar no formato 123.456.789-00",
+                  },
+                ]}
+              >
+                <InputMask mask="999.999.999-99" maskChar={null}>
+                  {(inputProps) => <Input {...inputProps} />}
+                </InputMask>
+              </Form.Item>
             <Form.Item
               name="modality"
               label="Modalidade"
