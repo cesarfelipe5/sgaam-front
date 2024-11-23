@@ -11,10 +11,10 @@ import {
 } from "antd";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
-import InputMask from "react-input-mask";
 import DrawerMenu from "../components/DrawerMenu";
 import { AulaExperimentalService } from "../services/aulaExperimental/AulaExperimentalService";
 import { ModalidadeService } from "../services/modalidade/ModalidadeService";
+import { maskCPF } from "../utils/mask";
 
 const AulasExperimentais = () => {
   const [loading, setLoading] = useState(false);

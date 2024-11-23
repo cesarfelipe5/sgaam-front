@@ -1,11 +1,11 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, Form, Input, Modal, Select, Space, Spin, Table } from "antd";
 import React, { useEffect, useState } from "react";
-import InputMask from "react-input-mask";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
 import { maskCEP, maskCPF, maskPhone } from "../utils/mask";
+import { notification } from "antd";
 
 const MainPage = () => {
   const [dataSource, setDataSource] = useState([]);
@@ -64,9 +64,10 @@ const MainPage = () => {
     const success = await AlunosService.createAluno({ aluno: values });
 
     if (!success) {
-      toast.error(
-        "Houve um problema na criação do aluno. Tente novamente mais tarde."
-      );
+      notification.error({
+        message: "Falha em registrar",
+        description: "Ocorreu uma falha em registrar, tente novamente.",
+      });
 
       setLoading(false);
 
