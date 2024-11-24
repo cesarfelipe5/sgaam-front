@@ -17,6 +17,7 @@ export const AlunosService = {
 
   createAluno: async ({ aluno }) => {
     const dataToCreate = {
+      idPlano: aluno.plano,
       nome: aluno.nome,
       cpf: aluno.cpf.replace(/\D/g, ""),
       rg: aluno.rg,
@@ -41,6 +42,7 @@ export const AlunosService = {
 
   updateAluno: async ({ aluno, id }) => {
     const dataToUpdate = {
+      idPlano: aluno.plano,
       nome: aluno.nome,
       cpf: aluno.cpf.replace(/\D/g, ""),
       rg: aluno.rg,

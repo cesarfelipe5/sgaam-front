@@ -1,14 +1,25 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Button, Form, Input, Modal, Select, Space, Spin, Table } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  notification,
+  Select,
+  Space,
+  Spin,
+  Table,
+} from "antd";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
+import { PlanoService } from "../services/plano/PlanoService";
 import { maskCEP, maskCPF, maskPhone } from "../utils/mask";
-import { notification } from "antd";
 
 const MainPage = () => {
   const [dataSource, setDataSource] = useState([]);
+  const [dataPlanos, setDataPlanos] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [viewDetailsVisible, setViewDetailsVisible] = useState(false);
@@ -18,25 +29,6 @@ const MainPage = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [sortKey, setSortKey] = useState("name");
-
-  const maskCPF = ({ value }) => {
-    value = value.replace(/\D/g, "");
-
-    if (value.length <= 11) {
-      value = value.replace(/(\d{3})(\d)/, "$1.$2");
-      value = value.replace(/(\d{3})(\d)/, "$1.$2");
-      value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-    }
-
-    return value;
-  };
-
-  // Mock data para os planos
-  const planos = [
-    { id: 1, nome: "Mensal" },
-    { id: 2, nome: "Trimestral" },
-    { id: 3, nome: "Anual" },
-  ];
 
   const getData = async () => {
     setLoading(true);
@@ -77,7 +69,7 @@ const MainPage = () => {
     notification.success({
       message: "Aluno registrado!",
       description: "Aluno registrado com sucesso.",
-    })
+    });
 
     setLoading(false);
 
@@ -96,7 +88,7 @@ const MainPage = () => {
       notification.error({
         message: "Falha ao atualizar aluno",
         description: "Aluno não atualizado.",
-      })
+      });
 
       setLoading(false);
 
@@ -106,30 +98,38 @@ const MainPage = () => {
     notification.success({
       message: "Aluno atualizado!",
       description: "Aluno atualizado com sucesso.",
-    })
+    });
 
     setLoading(false);
 
     getData();
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
+    setLoading(true);
+
+    const { data } = await PlanoService.getData({ perpage: 10000 });
+
+    setDataPlanos(data);
+
     setEditingRecord(null);
 
     form.resetFields();
+
+    setLoading(false);
 
     setModalVisible(true);
   };
 
   const handleEdit = async (id) => {
     const data = await getAlunoById({ id });
-      console.log('referencia',data)
+    console.log("referencia", data);
     const dataToEdit = {
       ...data,
       tipo: data.telefones[0].tipo,
-      numero_telefone: maskPhone({value : data.telefones[0].numero}),
-      cpf: maskCPF({value : data.cpf}),
-      cep: maskCEP({value : data.cep})
+      numero_telefone: maskPhone({ value: data.telefones[0].numero }),
+      cpf: maskCPF({ value: data.cpf }),
+      cep: maskCEP({ value: data.cep }),
     };
 
     setEditingRecord(dataToEdit);
@@ -250,8 +250,8 @@ const MainPage = () => {
       title: "Plano",
       dataIndex: "plano",
       key: "plano",
-      render: (plano) =>
-        planos.find((p) => p.id === plano)?.nome || "Não definido",
+      // render: (plano) =>
+      //   planos.find((p) => p.id === plano)?.nome || "Não definido",
     },
     {
       title: "Ações",
@@ -344,7 +344,7 @@ const MainPage = () => {
                 rules={[{ required: true, message: "Plano é obrigatório" }]}
               >
                 <Select>
-                  {planos.map((plano) => (
+                  {dataPlanos.map((plano) => (
                     <Select.Option key={plano.id} value={plano.id}>
                       {plano.nome}
                     </Select.Option>
@@ -383,15 +383,9 @@ const MainPage = () => {
               <Form.Item
                 name="rg"
                 label="RG"
-                rules={[
-                  { required: true, message: "RG é obrigatório" },
-
-                ]}
+                rules={[{ required: true, message: "RG é obrigatório" }]}
               >
-
-                <Input
-                  maxLength={14}
-                />
+                <Input maxLength={14} />
               </Form.Item>
 
               <Form.Item
