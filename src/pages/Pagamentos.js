@@ -79,9 +79,9 @@ const Pagamentos = () => {
     setEditingRecord(data);
 
     form.setFieldsValue({
-      nome: data.planoAlunos.idAluno, // ID do aluno
-      formaPagamento: data.formaPagamentos.id, // Aqui deve ser o ID da forma de pagamento
-      observacao: data.observacao, // Se houver observação
+      nome: data.planoAlunos.idAluno,
+      formaPagamento: data.formaPagamentos.id,
+      observacao: data.observacao,
       dataPagamento: moment(data.dataPagamento),
     });
 
