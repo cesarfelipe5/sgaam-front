@@ -56,17 +56,33 @@ const Pagamentos = () => {
 
     form.resetFields();
 
-    form.setFieldsValue({ dataPagamento: moment() }); // Padrão para data atual
+    form.setFieldsValue({ dataPagamento: moment() });
   };
 
   const handleEditPayment = async (record) => {
     setLoading(true);
 
-    setEditingRecord(record);
+    const { data: dataAlunos } = await AlunosService.getData({
+      perPage: 10000,
+    });
+
+    const { data: dataFormaPagamento } = await formaPagamentoService.getData({
+      perPage: 10000,
+    });
+
+    setAlunos(dataAlunos);
+
+    setFormaPagamento(dataFormaPagamento);
+
+    const { data } = await pagamentoService.getById({ id: record.id });
+
+    setEditingRecord(data);
 
     form.setFieldsValue({
-      ...record,
-      dataPagamento: moment(record.dataPagamento, "DD/MM/YYYY"),
+      nome: data.planoAlunos.idAluno, // ID do aluno
+      formaPagamento: data.formaPagamentos.id, // Aqui deve ser o ID da forma de pagamento
+      observacao: data.observacao, // Se houver observação
+      dataPagamento: moment(data.dataPagamento),
     });
 
     setIsModalVisible(true);

@@ -1,30 +1,10 @@
 import { Button, Col, Input, Modal, Row, Select, Table, Tag } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DrawerMenu from "../components/DrawerMenu";
+import { AlunosService } from "../services/alunos/AlunosService";
 
 const { Option } = Select;
 const { Search } = Input;
-
-// Dados da tabela de alunos com status
-const data = [
-  {
-    key: "1",
-    name: "João Silva",
-    status: "ativo",
-    paymentPlan: "Mensal",
-    planValue: "R$150",
-    planStart: "01/06/2023",
-  },
-  {
-    key: "2",
-    name: "Maria Souza",
-    status: "inativo",
-    paymentPlan: "Semestral",
-    planValue: "R$900",
-    planStart: "01/01/2023",
-  },
-  // Adicione mais alunos aqui
-];
 
 const mensalidadesData = {
   1: [
@@ -39,18 +19,28 @@ const mensalidadesData = {
 };
 
 const Mensalidades = () => {
+  const [loading, setLoading] = useState(false);
+  const [dataAlunos, setDataAlunos] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAluno, setSelectedAluno] = useState(null);
   const [sortOrder, setSortOrder] = useState("descend");
   const [searchText, setSearchText] = useState("");
 
-  const showModal = (record) => {
-    setSelectedAluno(record);
+  const showModal = async (record) => {
+    setLoading(true);
+
+    const { data } = await AlunosService.getById({ id: record.id });
+
+    setSelectedAluno(data);
+
     setIsModalVisible(true);
+
+    setLoading(false);
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
+
     setSelectedAluno(null);
   };
 
@@ -58,31 +48,19 @@ const Mensalidades = () => {
     setSortOrder(value);
   };
 
-  const sortedMensalidades = (data) => {
-    return data.sort((a, b) => {
-      const dateA = new Date(a.date.split("/").reverse().join("-"));
-      const dateB = new Date(b.date.split("/").reverse().join("-"));
-      return sortOrder === "descend" ? dateB - dateA : dateA - dateB;
-    });
-  };
-
-  const filteredData = data.filter((aluno) =>
-    aluno.name.toLowerCase().includes(searchText.toLowerCase())
-  );
-
   const columns = [
     {
       title: "Nome do Aluno",
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "nome",
+      key: "nome",
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status) => (
-        <Tag color={status === "ativo" ? "green" : "red"}>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
+      render: (_, record) => (
+        <Tag color={record.isActive ? "green" : "red"}>
+          {record.isActive ? "Ativo" : "Inativo"}
         </Tag>
       ),
     },
@@ -98,7 +76,7 @@ const Mensalidades = () => {
             borderColor: "#000",
           }}
         >
-          Ver Mensalidades
+          Ver mensalidades
         </Button>
       ),
     },
@@ -107,26 +85,38 @@ const Mensalidades = () => {
   const mensalidadesColumns = [
     {
       title: "Valor",
-      dataIndex: "value",
-      key: "value",
+      dataIndex: "valor",
+      key: "valor",
     },
     {
       title: "Data",
-      dataIndex: "date",
-      key: "date",
+      dataIndex: "dataPagamento",
+      key: "dataPagamento",
     },
     {
       title: "Recebido por",
-      dataIndex: "receivedBy",
+      dataIndex: ["usuarios", "nome"],
       key: "receivedBy",
     },
   ];
+
+  const getData = async () => {
+    setLoading(true);
+    const { data } = await AlunosService.getData({ perPage: 10000 });
+
+    setDataAlunos(data);
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
 
   return (
     <>
       <DrawerMenu />
 
-      {/* Campo de busca e tabela */}
       <Row
         style={{ marginBottom: "10px", marginTop: "20px", padding: "0 20px" }}
         justify="start"
@@ -141,14 +131,16 @@ const Mensalidades = () => {
       </Row>
 
       <Table
+        loading={loading}
         columns={columns}
-        dataSource={filteredData}
+        dataSource={dataAlunos}
         rowKey="key"
         style={{ padding: "0 20px" }}
+        pagination={false}
       />
 
       <Modal
-        title={`Mensalidades de ${selectedAluno?.name}`}
+        title={`Mensalidades de ${selectedAluno?.nome}`}
         open={isModalVisible}
         onCancel={handleCancel}
         footer={null}
@@ -156,14 +148,14 @@ const Mensalidades = () => {
         {selectedAluno && (
           <>
             <p>
-              <strong>Plano de Pagamento:</strong> {selectedAluno.paymentPlan}
+              <strong>Plano de Pagamento:</strong>
+              {selectedAluno.planos[0].nome}
             </p>
             <p>
-              <strong>Valor do Plano:</strong> {selectedAluno.planValue}
+              <strong>Valor do Plano:</strong>
+              {selectedAluno.planos[0].precoPadrao}
             </p>
-            <p>
-              <strong>Início do Plano:</strong> {selectedAluno.planStart}
-            </p>
+
             <Select
               defaultValue="descend"
               style={{ width: 200, marginBottom: "10px" }}
@@ -172,11 +164,11 @@ const Mensalidades = () => {
               <Option value="descend">Mais recentes primeiro</Option>
               <Option value="ascend">Mais antigos primeiro</Option>
             </Select>
+
+            {console.log(selectedAluno)}
             <Table
               columns={mensalidadesColumns}
-              dataSource={sortedMensalidades(
-                mensalidadesData[selectedAluno?.key] || []
-              )}
+              dataSource={selectedAluno.planoAlunos[0].pagamentos}
               pagination={false}
               rowKey="key"
             />
