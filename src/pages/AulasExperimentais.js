@@ -23,8 +23,15 @@ const AulasExperimentais = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [form] = Form.useForm();
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
 
   const { Option } = Select;
+
+  const modalDelete = (record) => {
+    setRecordToDelete(record)
+    setDeleteConfirmVisible(true)
+  }
 
   const getData = async () => {
     setLoading(true);
@@ -63,9 +70,8 @@ const AulasExperimentais = () => {
 
     form.setFieldsValue({
       ...record,
-      modalidade: record.modalidade.id, // Preenche com o ID da modalidade
-      // date: moment(record.date).format("YYYY-MM-DD"), // Formata a data corretamente
-      // time: record.hour, // Garante que o horário seja preenchido corretamente
+      modalidade: record.modalidade.id,
+      cpf: maskCPF({ value: record.cpf })
     });
 
     setEditingRecord(record);
@@ -73,9 +79,9 @@ const AulasExperimentais = () => {
     setModalVisible(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async () => {
     const { success } = await AulaExperimentalService.removeById({
-      id,
+      id: recordToDelete.id,
     });
 
     if (!success) {
@@ -94,6 +100,7 @@ const AulasExperimentais = () => {
       message: "Aula experimental!",
       description: "Aula experimental removida com sucesso.",
     });
+    setDeleteConfirmVisible(false);
 
     await getData();
   };
@@ -148,9 +155,7 @@ const AulasExperimentais = () => {
           description: "Aula experimental atualizada com sucesso.",
         });
       }
-
       await getData();
-
       setModalVisible(false);
 
       form.resetFields();
@@ -161,7 +166,7 @@ const AulasExperimentais = () => {
 
   const handleCancel = () => {
     setModalVisible(false);
-
+    setDeleteConfirmVisible(false);
     form.resetFields();
   };
 
@@ -175,6 +180,7 @@ const AulasExperimentais = () => {
       title: "CPF",
       dataIndex: "cpf",
       key: "cpf",
+      render: (_, record) => maskCPF({ value: record.cpf })
     },
     {
       title: "Modalidade",
@@ -200,7 +206,7 @@ const AulasExperimentais = () => {
         <Space>
           <Button onClick={() => handleEdit(record)}>Editar</Button>
 
-          <Button danger onClick={() => handleDelete(record.id)}>
+          <Button danger onClick={() => modalDelete(record)}>
             Excluir
           </Button>
         </Space>
@@ -232,6 +238,20 @@ const AulasExperimentais = () => {
           pagination={false}
           loading={loading}
         />
+
+        <Modal
+          title="Confirmar Exclusão"
+          open={deleteConfirmVisible}
+          onOk={handleDelete}
+          onCancel={handleCancel}
+          okText="Sim"
+          cancelText="Não"
+        >
+          <p>
+            Tem certeza de que deseja excluir o aluno{" "}
+            <strong>{recordToDelete?.nome}</strong>?
+          </p>
+        </Modal>
 
         <Modal
           title={editingRecord ? "Editar aula" : "Registrar aula"}

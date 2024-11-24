@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
-import { maskCEP, maskPhone } from "../utils/mask";
+import { maskCEP, maskCPF, maskPhone } from "../utils/mask";
+import { notification } from "antd";
 
 const MainPage = () => {
   const [dataSource, setDataSource] = useState([]);
@@ -63,16 +64,20 @@ const MainPage = () => {
     const success = await AlunosService.createAluno({ aluno: values });
 
     if (!success) {
-      toast.error(
-        "Houve um problema na criação do aluno. Tente novamente mais tarde."
-      );
+      notification.error({
+        message: "Falha em registrar",
+        description: "Ocorreu uma falha em registrar, tente novamente.",
+      });
 
       setLoading(false);
 
       return;
     }
 
-    toast.success("Aluno cadastrado com sucesso.");
+    notification.success({
+      message: "Aluno registrado!",
+      description: "Aluno registrado com sucesso.",
+    })
 
     setLoading(false);
 
@@ -88,16 +93,20 @@ const MainPage = () => {
     });
 
     if (!success) {
-      toast.error(
-        "Houve um problema na atualização do aluno. Tente novamente mais tarde."
-      );
+      notification.error({
+        message: "Falha ao atualizar aluno",
+        description: "Aluno não atualizado.",
+      })
 
       setLoading(false);
 
       return;
     }
 
-    toast.success("Aluno atualizado com sucesso.");
+    notification.success({
+      message: "Aluno atualizado!",
+      description: "Aluno atualizado com sucesso.",
+    })
 
     setLoading(false);
 
@@ -114,11 +123,13 @@ const MainPage = () => {
 
   const handleEdit = async (id) => {
     const data = await getAlunoById({ id });
-
+      console.log('referencia',data)
     const dataToEdit = {
       ...data,
       tipo: data.telefones[0].tipo,
-      numero_telefone: data.telefones[0].numero,
+      numero_telefone: maskPhone({value : data.telefones[0].numero}),
+      cpf: maskCPF({value : data.cpf}),
+      cep: maskCEP({value : data.cep})
     };
 
     setEditingRecord(dataToEdit);
@@ -366,6 +377,20 @@ const MainPage = () => {
                     form.setFieldsValue({ cpf: maskedValue });
                   }}
                   placeholder="123.456.789-00"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="rg"
+                label="RG"
+                rules={[
+                  { required: true, message: "RG é obrigatório" },
+
+                ]}
+              >
+
+                <Input
+                  maxLength={14}
                 />
               </Form.Item>
 

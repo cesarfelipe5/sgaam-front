@@ -22,14 +22,14 @@ export const AlunosService = {
       rg: aluno.rg,
       uf: aluno.uf.toUpperCase(),
       cidade: aluno.cidade,
-      cep: aluno.cep,
+      cep: aluno.cep.replace(/\D/g, ""),
       numero: aluno.numero,
       bairro: aluno.bairro,
       logradouro: aluno.logradouro,
       telefones: [
         {
           tipo: aluno.tipo,
-          numero: aluno.numero_telefone,
+          numero: aluno.numero_telefone.replace(/\D/g, ""),
         },
       ],
     };
@@ -42,18 +42,18 @@ export const AlunosService = {
   updateAluno: async ({ aluno, id }) => {
     const dataToUpdate = {
       nome: aluno.nome,
-      cpf: aluno.cpf,
+      cpf: aluno.cpf.replace(/\D/g, ""),
       rg: aluno.rg,
       uf: aluno.uf.toUpperCase(),
       cidade: aluno.cidade,
-      cep: aluno.cep,
+      cep: aluno.cep.replace(/\D/g, ""),
       numero: aluno.numero,
       bairro: aluno.bairro,
       logradouro: aluno.logradouro,
       telefones: [
         {
           tipo: aluno.tipo,
-          numero: aluno.numero_telefone,
+          numero: aluno.numero_telefone.replace(/\D/g, ""),
         },
       ],
     };
