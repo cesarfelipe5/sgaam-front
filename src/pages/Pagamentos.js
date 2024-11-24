@@ -1,39 +1,43 @@
-import { Button, DatePicker, Form, Input, Modal, Select, Table } from "antd";
+import {
+  Button,
+  DatePicker,
+  Form,
+  Input,
+  Modal,
+  notification,
+  Select,
+  Table,
+} from "antd";
 import moment from "moment";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
 import { formaPagamentoService } from "../services/formaPagamento/FormaPagamentoService";
+import { pagamentoService } from "../services/pagamento/PagamentoService";
 
 const { Option } = Select;
 const { Search } = Input;
 
 const Pagamentos = () => {
+  const [loading, setLoading] = useState(false);
   const [alunos, setAlunos] = useState([]);
   const [formaPagamento, setFormaPagamento] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [searchText, setSearchText] = useState(""); // Estado para o campo de busca
-  const [data, setData] = useState([
-    {
-      key: "1",
-      nome: "João Silva",
-      dataPagamento: "06/09/2024",
-      valorPago: "150,00",
-      valorPlano: "200,00", // Valor do plano adicionado
-      recebedor: "Ana Souza",
-    },
-    {
-      key: "2",
-      nome: "Maria Souza",
-      dataPagamento: "05/09/2024",
-      valorPago: "200,00",
-      valorPlano: "300,00", // Valor do plano adicionado
-      recebedor: "Carlos Pereira",
-    },
-  ]);
+  const [paymentData, setPaymenteData] = useState([]);
 
   const [form] = Form.useForm();
+
+  const getData = async () => {
+    setLoading(true);
+
+    const { data } = await pagamentoService.getData({ perPage: 1000 });
+
+    setPaymenteData(data);
+
+    setLoading(false);
+  };
 
   const handleAddPayment = async () => {
     const { data } = await AlunosService.getData({ perPage: 10000 });
@@ -66,39 +70,79 @@ const Pagamentos = () => {
     });
   };
 
-  const handleDeletePayment = (key) => {
-    setData(data.filter((item) => item.key !== key));
+  const handleDeletePayment = async (id) => {
+    const success = await pagamentoService.removeById({
+      id,
+    });
+
+    if (!success) {
+      notification.error({
+        message: "Erro na remoção do pagamento",
+        description:
+          "Houve um problema na remoção do pagamento. Tente novamente mais tarde.",
+      });
+
+      setLoading(false);
+
+      return;
+    }
+
+    notification.success({
+      message: "Pagamento removido",
+      description: "Pagamento removido com sucesso.",
+    });
   };
 
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
 
-      const newData = [...data];
-
       if (editingRecord) {
-        // Editando um pagamento existente
-        const index = newData.findIndex(
-          (item) => item.key === editingRecord.key
-        );
+        const success = await pagamentoService.updatePagamento({
+          pagamento: values,
+          id: editingRecord.id,
+        });
 
-        newData[index] = {
-          ...editingRecord,
+        if (!success) {
+          notification.error({
+            message: "Erro na atualização do pagamento",
+            description:
+              "Houve um problema na atualização do pagamento. Tente novamente mais tarde.",
+          });
 
-          ...values,
+          setLoading(false);
 
-          dataPagamento: values.dataPagamento.format("DD/MM/YYYY"),
-        };
+          return;
+        }
+
+        notification.success({
+          message: "Pagamento atualizado",
+          description: "Pagamento atualizado com sucesso.",
+        });
       } else {
-        newData.push({
-          key: `${newData.length + 1}`,
-          ...values,
+        const success = await pagamentoService.createPagamento({
+          pagamento: values,
+        });
 
-          dataPagamento: values.dataPagamento.format("DD/MM/YYYY"),
+        if (!success) {
+          notification.error({
+            message: "Erro na criação do pagamento",
+            description:
+              "Houve um problema na criação do pagamento. Tente novamente mais tarde.",
+          });
+
+          setLoading(false);
+
+          return;
+        }
+
+        notification.success({
+          message: "Pagamento criado!",
+          description: "Pagamento criado com sucesso.",
         });
       }
 
-      setData(newData);
+      await getData();
 
       setIsModalVisible(false);
     } catch (errInfo) {
@@ -107,7 +151,7 @@ const Pagamentos = () => {
   };
 
   // Filtragem dos dados com base na pesquisa
-  const filteredData = data.filter((aluno) =>
+  const filteredData = paymentData.filter((aluno) =>
     aluno.nome.toLowerCase().includes(searchText.toLowerCase())
   );
 
@@ -124,8 +168,8 @@ const Pagamentos = () => {
     },
     {
       title: "Valor Pago",
-      dataIndex: "valorPago",
-      key: "valorPago",
+      dataIndex: "valor",
+      key: "valor",
     },
     {
       title: "Valor do Plano",
@@ -140,7 +184,7 @@ const Pagamentos = () => {
     {
       title: "Ações",
       key: "acoes",
-      render: (text, record) => (
+      render: (_, record) => (
         <>
           <Button
             style={{ marginRight: 10 }}
@@ -149,6 +193,7 @@ const Pagamentos = () => {
           >
             Editar
           </Button>
+
           <Button
             type="link"
             danger
@@ -161,16 +206,21 @@ const Pagamentos = () => {
     },
   ];
 
+  useEffect(() => {
+    getData();
+  }, []);
+
   return (
     <>
       <DrawerMenu />
+
       <div style={{ padding: "20px" }}>
         <Button
           type="primary"
           style={{ backgroundColor: "black", marginBottom: "10px" }}
           onClick={handleAddPayment}
         >
-          Novo Pagamento
+          Novo pagamento
         </Button>
 
         {/* Campo de pesquisa */}
@@ -185,7 +235,7 @@ const Pagamentos = () => {
           }}
         />
 
-        <Table columns={columns} dataSource={filteredData} />
+        <Table columns={columns} dataSource={filteredData} loading={loading} />
 
         <Modal
           title={editingRecord ? "Editar Pagamento" : "Novo Pagamento"}
@@ -249,7 +299,7 @@ const Pagamentos = () => {
 
             <Form.Item
               label="Valor Pago"
-              name="valorPago"
+              name="valor"
               rules={[
                 { required: true, message: "Por favor, insira o valor pago" },
               ]}
