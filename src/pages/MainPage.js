@@ -74,7 +74,10 @@ const MainPage = () => {
       return;
     }
 
-    toast.success("Aluno cadastrado com sucesso.");
+    notification.success({
+      message: "Aluno registrado!",
+      description: "Aluno registrado com sucesso.",
+    })
 
     setLoading(false);
 
@@ -90,16 +93,20 @@ const MainPage = () => {
     });
 
     if (!success) {
-      toast.error(
-        "Houve um problema na atualização do aluno. Tente novamente mais tarde."
-      );
+      notification.error({
+        message: "Falha ao atualizar aluno",
+        description: "Aluno não atualizado.",
+      })
 
       setLoading(false);
 
       return;
     }
 
-    toast.success("Aluno atualizado com sucesso.");
+    notification.success({
+      message: "Aluno atualizado!",
+      description: "Aluno atualizado com sucesso.",
+    })
 
     setLoading(false);
 
@@ -116,11 +123,13 @@ const MainPage = () => {
 
   const handleEdit = async (id) => {
     const data = await getAlunoById({ id });
-
+      console.log('referencia',data)
     const dataToEdit = {
       ...data,
       tipo: data.telefones[0].tipo,
-      numero_telefone: data.telefones[0].numero,
+      numero_telefone: maskPhone({value : data.telefones[0].numero}),
+      cpf: maskCPF({value : data.cpf}),
+      cep: maskCEP({value : data.cep})
     };
 
     setEditingRecord(dataToEdit);
@@ -365,12 +374,26 @@ const MainPage = () => {
                 <Input
                   maxLength={14}
                   onChange={(e) => {
-                    const maskedValue = maskCPF({ value: e.target.value });                  
+                    const maskedValue = maskCPF({ value: e.target.value });
                     form.setFieldsValue({ cpf: maskedValue });
                   }}
                   placeholder="123.456.789-00"
                 />
-                </Form.Item>
+              </Form.Item>
+
+              <Form.Item
+                name="rg"
+                label="RG"
+                rules={[
+                  { required: true, message: "RG é obrigatório" },
+
+                ]}
+              >
+
+                <Input
+                  maxLength={14}
+                />
+              </Form.Item>
 
               <Form.Item
                 name="cep"
@@ -468,12 +491,12 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <Input 
-                maxLength={16}
-                onChange={e => {
-                  const maskedTelefone = maskPhone({ value: e.target.value });
-                  form.setFieldsValue({ numero_telefone: maskedTelefone })
-                }} />
+                <Input
+                  maxLength={16}
+                  onChange={e => {
+                    const maskedTelefone = maskPhone({ value: e.target.value });
+                    form.setFieldsValue({ numero_telefone: maskedTelefone })
+                  }} />
               </Form.Item>
             </Form>
           </Modal>

@@ -63,9 +63,8 @@ const AulasExperimentais = () => {
 
     form.setFieldsValue({
       ...record,
-      modalidade: record.modalidade.id, // Preenche com o ID da modalidade
-      // date: moment(record.date).format("YYYY-MM-DD"), // Formata a data corretamente
-      // time: record.hour, // Garante que o horário seja preenchido corretamente
+      modalidade: record.modalidade.id, 
+      cpf: maskCPF({value : record.cpf})
     });
 
     setEditingRecord(record);
@@ -116,7 +115,7 @@ const AulasExperimentais = () => {
             description:
               "Houve um problema ao criar a aula experimental. Tente novamente mais tarde.",
           });
-
+ 
           setLoading(false);
 
           return;
@@ -127,7 +126,7 @@ const AulasExperimentais = () => {
           description: "Aula experimental atualizada com sucesso.",
         });
       }
-
+      await getData();
       setModalVisible(false);
 
       form.resetFields();
@@ -151,6 +150,7 @@ const AulasExperimentais = () => {
       title: "CPF",
       dataIndex: "cpf",
       key: "cpf",
+      render: (_, record) => maskCPF ({value : record.cpf})
     },
     {
       title: "Modalidade",
