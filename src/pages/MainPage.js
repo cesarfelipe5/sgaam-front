@@ -1,11 +1,10 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, Form, Input, Modal, Select, Space, Spin, Table } from "antd";
 import React, { useEffect, useState } from "react";
-import InputMask from "react-input-mask";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
-import { maskCEP, maskCPF, maskPhone } from "../utils/mask";
+import { maskCEP, maskPhone } from "../utils/mask";
 
 const MainPage = () => {
   const [dataSource, setDataSource] = useState([]);
@@ -360,16 +359,15 @@ const MainPage = () => {
                   },
                 ]}
               >
-
                 <Input
                   maxLength={14}
                   onChange={(e) => {
-                    const maskedValue = maskCPF({ value: e.target.value });                  
+                    const maskedValue = maskCPF({ value: e.target.value });
                     form.setFieldsValue({ cpf: maskedValue });
                   }}
                   placeholder="123.456.789-00"
                 />
-                </Form.Item>
+              </Form.Item>
 
               <Form.Item
                 name="cep"
@@ -467,12 +465,13 @@ const MainPage = () => {
                   },
                 ]}
               >
-                <Input 
-                maxLength={16}
-                onChange={e => {
-                  const maskedTelefone = maskPhone({ value: e.target.value });
-                  form.setFieldsValue({ numero_telefone: maskedTelefone })
-                }} />
+                <Input
+                  maxLength={16}
+                  onChange={(e) => {
+                    const maskedTelefone = maskPhone({ value: e.target.value });
+                    form.setFieldsValue({ numero_telefone: maskedTelefone });
+                  }}
+                />
               </Form.Item>
             </Form>
           </Modal>

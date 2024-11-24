@@ -22,7 +22,7 @@ export const formaPagamentoService = {
 
     const { data } = await Api.post(`/formaPagamento`, dataToCreate);
 
-    return data?.success;
+    return data;
   },
 
   updateFormaPagamento: async ({ formaPagamento, id }) => {
@@ -32,12 +32,12 @@ export const formaPagamentoService = {
 
     const { data } = await Api.put(`/formaPagamento/${id}`, dataToUpdate);
 
-    return data.status;
+    return data;
   },
 
   removeById: async ({ id }) => {
     const { data } = await Api.delete(`/formaPagamento/${id}`);
 
-    return data?.success;
+    return data;
   },
 };

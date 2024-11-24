@@ -11,10 +11,10 @@ import {
 } from "antd";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
-import InputMask from "react-input-mask";
 import DrawerMenu from "../components/DrawerMenu";
 import { AulaExperimentalService } from "../services/aulaExperimental/AulaExperimentalService";
 import { ModalidadeService } from "../services/modalidade/ModalidadeService";
+import { maskCPF } from "../utils/mask";
 
 const AulasExperimentais = () => {
   const [loading, setLoading] = useState(false);
@@ -73,8 +73,29 @@ const AulasExperimentais = () => {
     setModalVisible(true);
   };
 
-  const handleDelete = (key) => {
-    setDataSource(dataSource.filter((item) => item.key !== key));
+  const handleDelete = async (id) => {
+    const { success } = await AulaExperimentalService.removeById({
+      id,
+    });
+
+    if (!success) {
+      notification.error({
+        message: "Erro ao remover aula experimental",
+        description:
+          "Houve um problema ao remover a aula experimental. Tente novamente mais tarde.",
+      });
+
+      setLoading(false);
+
+      return;
+    }
+
+    notification.success({
+      message: "Aula experimental!",
+      description: "Aula experimental removida com sucesso.",
+    });
+
+    await getData();
   };
 
   const handleOk = async () => {
@@ -128,6 +149,8 @@ const AulasExperimentais = () => {
         });
       }
 
+      await getData();
+
       setModalVisible(false);
 
       form.resetFields();
@@ -138,6 +161,7 @@ const AulasExperimentais = () => {
 
   const handleCancel = () => {
     setModalVisible(false);
+
     form.resetFields();
   };
 
@@ -176,7 +200,7 @@ const AulasExperimentais = () => {
         <Space>
           <Button onClick={() => handleEdit(record)}>Editar</Button>
 
-          <Button danger onClick={() => handleDelete(record.key)}>
+          <Button danger onClick={() => handleDelete(record.id)}>
             Excluir
           </Button>
         </Space>
@@ -239,7 +263,6 @@ const AulasExperimentais = () => {
                 },
               ]}
             >
-
               <Input
                 maxLength={14}
                 onChange={(e) => {
