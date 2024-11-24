@@ -20,7 +20,6 @@ export const AulaExperimentalService = {
     const dataToCreate = {
       nome: aulaExperimental.nome,
       cpf: aulaExperimental.cpf.replace(/\D/g, ""),
-      // date: moment(aulaExperimental.date).format(moment.ISO_8601),
       date: moment(aulaExperimental.date).toISOString(),
       hour: aulaExperimental.hour,
       idModalidade: aulaExperimental.modalidade,

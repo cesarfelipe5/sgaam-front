@@ -370,7 +370,6 @@ const MainPage = () => {
                   },
                 ]}
               >
-
                 <Input
                   maxLength={14}
                   onChange={(e) => {
@@ -493,10 +492,11 @@ const MainPage = () => {
               >
                 <Input
                   maxLength={16}
-                  onChange={e => {
+                  onChange={(e) => {
                     const maskedTelefone = maskPhone({ value: e.target.value });
-                    form.setFieldsValue({ numero_telefone: maskedTelefone })
-                  }} />
+                    form.setFieldsValue({ numero_telefone: maskedTelefone });
+                  }}
+                />
               </Form.Item>
             </Form>
           </Modal>

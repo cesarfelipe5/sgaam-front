@@ -31,7 +31,7 @@ const FormaPagamento = () => {
   };
 
   const handleDelete = (id) => async () => {
-    const success = await formaPagamentoService.removeById({
+    const { success } = await formaPagamentoService.removeById({
       id,
     });
 
@@ -55,7 +55,7 @@ const FormaPagamento = () => {
       const values = await form.validateFields();
 
       if (editingRecord) {
-        const success = await formaPagamentoService.updateFormaPagamento({
+        const { success } = await formaPagamentoService.updateFormaPagamento({
           formaPagamento: values,
           id: editingRecord.id,
         });
@@ -72,7 +72,7 @@ const FormaPagamento = () => {
 
         toast.success("Forma de pagamento atualizada com sucesso.");
       } else {
-        const success = await formaPagamentoService.createFormaPagamento({
+        const { success } = await formaPagamentoService.createFormaPagamento({
           formaPagamento: values,
         });
 
@@ -89,7 +89,7 @@ const FormaPagamento = () => {
         toast.success("Forma de pagamento criada com sucesso.");
       }
 
-      getData();
+      await getData();
 
       setModalVisible(false);
 
@@ -101,6 +101,7 @@ const FormaPagamento = () => {
 
   const handleCancel = () => {
     setModalVisible(false);
+
     form.resetFields();
   };
 
