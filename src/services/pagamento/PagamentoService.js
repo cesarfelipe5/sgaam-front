@@ -21,7 +21,7 @@ export const pagamentoService = {
       valor: pagamento.valor,
       dataPagamento: moment(pagamento.dataPagamento).toISOString(),
       idPlanoAluno: pagamento.idPlanoAluno,
-      idFormaPagamento: pagamento.idFormaPagamento,
+      idFormaPagamento: pagamento.formaPagamento,
       observacao: pagamento.observacao,
     };
 
@@ -35,7 +35,7 @@ export const pagamentoService = {
       valor: pagamento.valor,
       dataPagamento: moment(pagamento.dataPagamento).toISOString(),
       idPlanoAluno: pagamento.idPlanoAluno,
-      idFormaPagamento: pagamento.idFormaPagamento,
+      idFormaPagamento: pagamento.formaPagamento,
       observacao: pagamento.observacao,
     };
 

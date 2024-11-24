@@ -123,13 +123,17 @@ const MainPage = () => {
 
   const handleEdit = async (id) => {
     const data = await getAlunoById({ id });
-    console.log("referencia", data);
+    const { data: dataPlans } = await PlanoService.getData({ perPage: 10000 });
+
+    setDataPlanos(dataPlans);
+
     const dataToEdit = {
       ...data,
       tipo: data.telefones[0].tipo,
       numero_telefone: maskPhone({ value: data.telefones[0].numero }),
       cpf: maskCPF({ value: data.cpf }),
       cep: maskCEP({ value: data.cep }),
+      plano: data.planos[0]?.id,
     };
 
     setEditingRecord(dataToEdit);
@@ -250,8 +254,7 @@ const MainPage = () => {
       title: "Plano",
       dataIndex: "plano",
       key: "plano",
-      // render: (plano) =>
-      //   planos.find((p) => p.id === plano)?.nome || "Não definido",
+      render: (_, record) => record.planos[0]?.nome,
     },
     {
       title: "Ações",
@@ -262,7 +265,7 @@ const MainPage = () => {
             onClick={() => handleViewDetails(record.id)}
             style={{ borderColor: "green", color: "green" }}
           >
-            Ver Detalhes
+            Ver detalhes
           </Button>
 
           <Button onClick={() => handleEdit(record.id)}>Editar</Button>
@@ -504,7 +507,7 @@ const MainPage = () => {
             {editingRecord && (
               <div>
                 <p>
-                  <strong>Plano:</strong> {editingRecord.plano}
+                  <strong>Plano:</strong> {editingRecord.planos[0]?.nome}
                 </p>
 
                 <p>
@@ -512,7 +515,7 @@ const MainPage = () => {
                 </p>
 
                 <p>
-                  <strong>CPF:</strong> {editingRecord.cpf}
+                  <strong>CPF:</strong> {maskCPF({ value: editingRecord.cpf })}
                 </p>
 
                 <p>
@@ -520,7 +523,7 @@ const MainPage = () => {
                 </p>
 
                 <p>
-                  <strong>CEP:</strong> {editingRecord.cep}
+                  <strong>CEP:</strong> {maskCEP({ value: editingRecord.cep })}
                 </p>
 
                 <p>
@@ -548,7 +551,8 @@ const MainPage = () => {
                 </p>
 
                 <p>
-                  <strong>Telefone:</strong> {editingRecord.numero_telefone}
+                  <strong>Telefone:</strong>
+                  {maskPhone({ value: editingRecord.numero_telefone })}
                 </p>
               </div>
             )}

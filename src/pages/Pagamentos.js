@@ -59,8 +59,8 @@ const Pagamentos = () => {
     form.setFieldsValue({ dataPagamento: moment() }); // Padrão para data atual
   };
 
-  const handleEditPayment = (record) => {
-    setIsModalVisible(true);
+  const handleEditPayment = async (record) => {
+    setLoading(true);
 
     setEditingRecord(record);
 
@@ -68,11 +68,15 @@ const Pagamentos = () => {
       ...record,
       dataPagamento: moment(record.dataPagamento, "DD/MM/YYYY"),
     });
+
+    setIsModalVisible(true);
+
+    setLoading(false);
   };
 
-  const handleDeletePayment = async (id) => {
+  const handleDeletePayment = async (record) => {
     const success = await pagamentoService.removeById({
-      id,
+      id: record.id,
     });
 
     if (!success) {
@@ -87,6 +91,8 @@ const Pagamentos = () => {
       return;
     }
 
+    await getData();
+
     notification.success({
       message: "Pagamento removido",
       description: "Pagamento removido com sucesso.",
@@ -99,7 +105,11 @@ const Pagamentos = () => {
 
       if (editingRecord) {
         const success = await pagamentoService.updatePagamento({
-          pagamento: values,
+          pagamento: {
+            ...values,
+            idPlanoAluno: alunos.find((aluno) => aluno.id === values.nome)
+              .planos[0].PlanoAluno.id,
+          },
           id: editingRecord.id,
         });
 
@@ -121,7 +131,11 @@ const Pagamentos = () => {
         });
       } else {
         const success = await pagamentoService.createPagamento({
-          pagamento: values,
+          pagamento: {
+            ...values,
+            idPlanoAluno: alunos.find((aluno) => aluno.id === values.nome)
+              .planos[0].PlanoAluno.id,
+          },
         });
 
         if (!success) {
@@ -150,15 +164,10 @@ const Pagamentos = () => {
     }
   };
 
-  // Filtragem dos dados com base na pesquisa
-  const filteredData = paymentData.filter((aluno) =>
-    aluno.nome.toLowerCase().includes(searchText.toLowerCase())
-  );
-
   const columns = [
     {
       title: "Nome do Aluno",
-      dataIndex: "nome",
+      dataIndex: ["planoAlunos", "aluno", "nome"],
       key: "nome",
     },
     {
@@ -173,13 +182,14 @@ const Pagamentos = () => {
     },
     {
       title: "Valor do Plano",
-      dataIndex: "valorPlano",
+      dataIndex: ["planoAlunos", "plano", "precoPadrao"],
       key: "valorPlano",
     },
     {
       title: "Recebedor",
-      dataIndex: "recebedor",
+      // dataIndex: "recebedor",
       key: "recebedor",
+      dataIndex: ["usuarios", "nome"],
     },
     {
       title: "Ações",
@@ -197,7 +207,7 @@ const Pagamentos = () => {
           <Button
             type="link"
             danger
-            onClick={() => handleDeletePayment(record.key)}
+            onClick={() => handleDeletePayment(record)}
           >
             Excluir
           </Button>
@@ -235,7 +245,7 @@ const Pagamentos = () => {
           }}
         />
 
-        <Table columns={columns} dataSource={filteredData} loading={loading} />
+        <Table columns={columns} dataSource={paymentData} loading={loading} />
 
         <Modal
           title={editingRecord ? "Editar Pagamento" : "Novo Pagamento"}
@@ -306,6 +316,7 @@ const Pagamentos = () => {
             >
               <Input prefix="R$" placeholder="Valor em BRL" />
             </Form.Item>
+
             <Form.Item
               label="Data do Pagamento"
               name="dataPagamento"
@@ -317,6 +328,10 @@ const Pagamentos = () => {
               ]}
             >
               <DatePicker format="DD/MM/YYYY" />
+            </Form.Item>
+
+            <Form.Item label="Alguma observação?" name="observacao">
+              <Input />
             </Form.Item>
           </Form>
         </Modal>
