@@ -18,7 +18,7 @@ export const AlunosService = {
   createAluno: async ({ aluno }) => {
     const dataToCreate = {
       nome: aluno.nome,
-      cpf: aluno.cpf,
+      cpf: aluno.cpf.replace(/\D/g, ""),
       rg: aluno.rg,
       uf: aluno.uf.toUpperCase(),
       cidade: aluno.cidade,

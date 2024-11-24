@@ -82,17 +82,17 @@ const AulasExperimentais = () => {
       const values = await form.validateFields();
 
       if (editingRecord) {
-      } else {
         const { success } =
-          await AulaExperimentalService.createAulaExperimental({
+          await AulaExperimentalService.updateAulaExperimental({
             aulaExperimental: values,
+            id: editingRecord.id,
           });
 
         if (!success) {
           notification.error({
-            message: "Erro ao criar aula experimental",
+            message: "Erro ao atualizar aula experimental",
             description:
-              "Houve um problema ao criar uma aula experimental. Tente novamente mais tarde.",
+              "Houve um problema ao atualizar a aula experimental. Tente novamente mais tarde.",
           });
 
           setLoading(false);
@@ -102,7 +102,29 @@ const AulasExperimentais = () => {
 
         notification.success({
           message: "Aula experimental!",
-          description: "Aula experimental criada com sucesso.",
+          description: "Aula experimental atualizada com sucesso.",
+        });
+      } else {
+        const { success } =
+          await AulaExperimentalService.createAulaExperimental({
+            aulaExperimental: values,
+          });
+
+        if (!success) {
+          notification.error({
+            message: "Erro ao criar a aula experimental",
+            description:
+              "Houve um problema ao criar a aula experimental. Tente novamente mais tarde.",
+          });
+
+          setLoading(false);
+
+          return;
+        }
+
+        notification.success({
+          message: "Aula experimental!",
+          description: "Aula experimental atualizada com sucesso.",
         });
       }
 

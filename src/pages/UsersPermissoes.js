@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, Select } from 'antd';
-import DrawerMenu from '../components/DrawerMenu';
+import { Button, Form, Input, Modal, Select, Table } from "antd";
+import React, { useState } from "react";
+import DrawerMenu from "../components/DrawerMenu";
 
 const { Option } = Select;
 
@@ -9,18 +9,18 @@ const UsuariosPermissoes = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [data, setData] = useState([
     {
-      key: '1',
-      nome: 'João Silva',
-      email: 'joao@exemplo.com',
-      nivelAcesso: 'Administrador',
-      dataPermissao: '2023-01-10',
+      key: "1",
+      nome: "João Silva",
+      email: "joao@exemplo.com",
+      nivelAcesso: "Administrador",
+      dataPermissao: "2023-01-10",
     },
     {
-      key: '2',
-      nome: 'Maria Souza',
-      email: 'maria@exemplo.com',
-      nivelAcesso: 'Professor',
-      dataPermissao: '2023-03-15',
+      key: "2",
+      nome: "Maria Souza",
+      email: "maria@exemplo.com",
+      nivelAcesso: "Professor",
+      dataPermissao: "2023-03-15",
     },
   ]);
 
@@ -63,30 +63,43 @@ const UsuariosPermissoes = () => {
 
   const columns = [
     {
-      title: 'Nome',
-      dataIndex: 'nome',
-      key: 'nome',
+      title: "Nome",
+      dataIndex: "nome",
+      key: "nome",
     },
     {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
     },
     {
-      title: 'Nível de Acesso',
-      dataIndex: 'nivelAcesso',
-      key: 'nivelAcesso',
+      title: "Nível de Acesso",
+      dataIndex: "nivelAcesso",
+      key: "nivelAcesso",
     },
 
     {
-      title: 'Ações',
-      key: 'acoes',
+      title: "Ações",
+      key: "acoes",
       render: (text, record) => (
         <>
-          <Button style={{ borderColor: 'black', color: 'black', marginRight: '15px' }} type="link" onClick={() => handleEditUser(record)}>
+          <Button
+            style={{
+              borderColor: "black",
+              color: "black",
+              marginRight: "15px",
+            }}
+            type="link"
+            onClick={() => handleEditUser(record)}
+          >
             Editar
           </Button>
-          <Button style={{ borderColor: 'red', color: 'red' }} type="link" onClick={() => handleDeleteUser(record.key)} danger>
+          <Button
+            style={{ borderColor: "red", color: "red" }}
+            type="link"
+            onClick={() => handleDeleteUser(record.key)}
+            danger
+          >
             Remover
           </Button>
         </>
@@ -97,15 +110,19 @@ const UsuariosPermissoes = () => {
   return (
     <>
       <DrawerMenu />
-      <div style={{ padding: '20px' }}>
-        <Button type="primary" style={{ backgroundColor: 'black', marginBottom: '20px' }} onClick={handleAddUser}>
+      <div style={{ padding: "20px" }}>
+        <Button
+          type="primary"
+          style={{ backgroundColor: "black", marginBottom: "20px" }}
+          onClick={handleAddUser}
+        >
           Adicionar Usuário
         </Button>
         <Table columns={columns} dataSource={data} />
 
         <Modal
-          title={editingUser ? 'Editar Usuário' : 'Adicionar Usuário'}
-          visible={isModalVisible}
+          title={editingUser ? "Editar Usuário" : "Adicionar Usuário"}
+          open={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
           footer={[
             <Button key="cancel" onClick={() => setIsModalVisible(false)}>
@@ -120,28 +137,43 @@ const UsuariosPermissoes = () => {
             <Form.Item
               label="Nome"
               name="nome"
-              rules={[{ required: true, message: 'Por favor, insira o nome do usuário' }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Por favor, insira o nome do usuário",
+                },
+              ]}
             >
               <Input />
             </Form.Item>
             <Form.Item
               label="Email"
               name="email"
-              rules={[{ required: true, type: 'email', message: 'Por favor, insira um email válido' }]}
+              rules={[
+                {
+                  required: true,
+                  type: "email",
+                  message: "Por favor, insira um email válido",
+                },
+              ]}
             >
               <Input />
             </Form.Item>
             <Form.Item
               label="Nível de Acesso"
               name="nivelAcesso"
-              rules={[{ required: true, message: 'Por favor, selecione o nível de acesso' }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Por favor, selecione o nível de acesso",
+                },
+              ]}
             >
               <Select>
                 <Option value="Administrador">Administrador</Option>
                 <Option value="Professor">Professor</Option>
                 <Option value="Recepção">Recepção</Option>
               </Select>
-          
             </Form.Item>
           </Form>
         </Modal>
