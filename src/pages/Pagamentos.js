@@ -14,6 +14,7 @@ import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
 import { formaPagamentoService } from "../services/formaPagamento/FormaPagamentoService";
 import { pagamentoService } from "../services/pagamento/PagamentoService";
+import { formatCurrency } from "../utils/mask";
 
 const { Option } = Select;
 const { Search } = Input;
@@ -190,16 +191,24 @@ const Pagamentos = () => {
       title: "Data do Pagamento",
       dataIndex: "dataPagamento",
       key: "dataPagamento",
+      render: (dataPagamento) =>
+        moment(dataPagamento).format("DD/MM/YYYY"),
     },
     {
       title: "Valor Pago",
       dataIndex: "valor",
       key: "valor",
+      render: (_, record) => (
+        formatCurrency(record.valor)
+      ),
     },
     {
       title: "Valor do Plano",
       dataIndex: ["planoAlunos", "plano", "precoPadrao"],
       key: "valorPlano",
+      render: (_, record) => (
+        formatCurrency(record.planoAlunos.plano.precoPadrao)
+      ),
     },
     {
       title: "Recebedor",
