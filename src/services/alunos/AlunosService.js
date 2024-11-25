@@ -37,7 +37,7 @@ export const AlunosService = {
 
     const { data } = await Api.post(`/aluno`, dataToCreate);
 
-    return data?.success;
+    return data;
   },
 
   updateAluno: async ({ aluno, id }) => {
@@ -62,12 +62,12 @@ export const AlunosService = {
 
     const { data } = await Api.put(`/aluno/${id}`, dataToUpdate);
 
-    return data.status;
+    return data;
   },
 
   removeById: async ({ id }) => {
     const { data } = await Api.delete(`/aluno/${id}`);
 
-    return data?.success;
+    return data;
   },
 };

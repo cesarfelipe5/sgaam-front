@@ -6,18 +6,6 @@ import { AlunosService } from "../services/alunos/AlunosService";
 const { Option } = Select;
 const { Search } = Input;
 
-const mensalidadesData = {
-  1: [
-    { key: "1", value: "R$150", date: "01/08/2023", receivedBy: "Fulano" },
-    { key: "2", value: "R$150", date: "01/07/2023", receivedBy: "Beltrano" },
-  ],
-  2: [
-    { key: "1", value: "R$200", date: "01/08/2023", receivedBy: "Ciclano" },
-    { key: "2", value: "R$200", date: "01/07/2023", receivedBy: "Fulano" },
-  ],
-  // Adicione mais mensalidades por aluno aqui
-};
-
 const Mensalidades = () => {
   const [loading, setLoading] = useState(false);
   const [dataAlunos, setDataAlunos] = useState([]);

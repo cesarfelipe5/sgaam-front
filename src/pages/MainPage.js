@@ -53,7 +53,7 @@ const MainPage = () => {
   const submitAluno = async (values) => {
     setLoading(true);
 
-    const success = await AlunosService.createAluno({ aluno: values });
+    const { success } = await AlunosService.createAluno({ aluno: values });
 
     if (!success) {
       notification.error({
@@ -79,7 +79,7 @@ const MainPage = () => {
   const updateAluno = async (values) => {
     setLoading(true);
 
-    const success = await AlunosService.updateAluno({
+    const { success } = await AlunosService.updateAluno({
       aluno: values,
       id: editingRecord.id,
     });
@@ -150,7 +150,9 @@ const MainPage = () => {
   };
 
   const handleDelete = async () => {
-    const success = await AlunosService.removeById({ id: recordToDelete.id });
+    const { success } = await AlunosService.removeById({
+      id: recordToDelete.id,
+    });
 
     if (!success) {
       toast.error(

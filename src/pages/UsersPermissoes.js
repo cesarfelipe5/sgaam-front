@@ -1,64 +1,134 @@
-import { Button, Form, Input, Modal, Select, Table } from "antd";
-import React, { useState } from "react";
+import { Button, Form, Input, Modal, notification, Table, Tag } from "antd";
+import React, { useEffect, useState } from "react";
 import DrawerMenu from "../components/DrawerMenu";
-
-const { Option } = Select;
+import { UsuarioService } from "../services/usuario/UsuarioService";
 
 const UsuariosPermissoes = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [data, setData] = useState([
-    {
-      key: "1",
-      nome: "João Silva",
-      email: "joao@exemplo.com",
-      nivelAcesso: "Administrador",
-      dataPermissao: "2023-01-10",
-    },
-    {
-      key: "2",
-      nome: "Maria Souza",
-      email: "maria@exemplo.com",
-      nivelAcesso: "Professor",
-      dataPermissao: "2023-03-15",
-    },
-  ]);
+  const [dataUser, setDataUser] = useState();
+  const [loading, setLoading] = useState(null);
 
   const [form] = Form.useForm();
 
+  const getData = async () => {
+    setLoading(true);
+
+    const { data } = await UsuarioService.getData({ perPage: 1000 });
+
+    setDataUser(data);
+
+    setLoading(false);
+  };
+
   const handleAddUser = () => {
-    setIsModalVisible(true);
     setEditingUser(null);
+
     form.resetFields();
+
+    setIsModalVisible(true);
   };
 
   const handleEditUser = (record) => {
     setIsModalVisible(true);
+
     setEditingUser(record);
+
     form.setFieldsValue(record);
   };
 
-  const handleDeleteUser = (key) => {
-    setData(data.filter((item) => item.key !== key));
+  const handleDeleteUser = async (user) => {
+    setLoading(true);
+
+    const { success } = await UsuarioService.removeById({ id: user.id });
+
+    if (!success) {
+      notification.error({
+        message: "Erro ao remover o usuário",
+        description:
+          "Houve um problema ao remover o usuário. Tente novamente mais tarde.",
+      });
+
+      return;
+    }
+
+    notification.success({
+      message: "Usuário removido!",
+      description: "Usuário removido com sucesso.",
+    });
+
+    setLoading(false);
+
+    getData();
   };
 
-  const handleSave = () => {
-    form.validateFields().then((values) => {
-      const newData = [...data];
-      if (editingUser) {
-        // Editando um usuário existente
-        const index = newData.findIndex((item) => item.key === editingUser.key);
-        newData[index] = { ...editingUser, ...values };
-      } else {
-        // Adicionando um novo usuário
-        newData.push({
-          key: `${newData.length + 1}`,
-          ...values,
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields();
+
+      if (values.senha !== values.senhaConfirmacao) {
+        notification.error({
+          message: "Senhas não são iguais.",
+          description:
+            "Senhas não são iguais, verifique as senha informadas e tente novamente.",
         });
       }
-      setData(newData);
+
+      if (editingUser) {
+        setLoading(true);
+
+        const { success } = await UsuarioService.updateUsuario({
+          usuario: values,
+          id: editingUser.id,
+        });
+
+        if (!success) {
+          notification.error({
+            message: "Erro ao atualiar o usuário",
+            description:
+              "Houve um problema ao atualizar o usuário. Tente novamente mais tarde.",
+          });
+
+          return;
+        }
+
+        notification.success({
+          message: "Usuário atualizado!",
+          description: "Usuário atualizado com sucesso.",
+        });
+      } else {
+        setLoading(true);
+
+        const { success } = await UsuarioService.createUsuario({
+          usuario: values,
+        });
+
+        if (!success) {
+          notification.error({
+            message: "Erro ao criar usuário",
+            description:
+              "Houve um problema ao criar o usuário. Tente novamente mais tarde.",
+          });
+
+          return;
+        }
+
+        notification.success({
+          message: "Usuário adicionado!",
+          description: "Usuário adicionado com sucesso.",
+        });
+      }
+
+      setLoading(false);
+
+      await getData();
+
+      form.resetFields();
+
       setIsModalVisible(false);
-    });
+    } catch (error) {
+      console.error("Erro na validação:", error);
+    }
   };
 
   const columns = [
@@ -73,15 +143,19 @@ const UsuariosPermissoes = () => {
       key: "email",
     },
     {
-      title: "Nível de Acesso",
-      dataIndex: "nivelAcesso",
-      key: "nivelAcesso",
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (_, record) => (
+        <Tag color={record.isActive ? "green" : "red"}>
+          {record.isActive ? "Ativo" : "Inativo"}
+        </Tag>
+      ),
     },
-
     {
       title: "Ações",
       key: "acoes",
-      render: (text, record) => (
+      render: (_, record) => (
         <>
           <Button
             style={{
@@ -94,10 +168,11 @@ const UsuariosPermissoes = () => {
           >
             Editar
           </Button>
+
           <Button
             style={{ borderColor: "red", color: "red" }}
             type="link"
-            onClick={() => handleDeleteUser(record.key)}
+            onClick={() => handleDeleteUser(record)}
             danger
           >
             Remover
@@ -107,27 +182,39 @@ const UsuariosPermissoes = () => {
     },
   ];
 
+  useEffect(() => {
+    getData();
+  }, []);
+
   return (
     <>
       <DrawerMenu />
+
       <div style={{ padding: "20px" }}>
         <Button
           type="primary"
           style={{ backgroundColor: "black", marginBottom: "20px" }}
           onClick={handleAddUser}
         >
-          Adicionar Usuário
+          Adicionar usuário
         </Button>
-        <Table columns={columns} dataSource={data} />
+
+        <Table
+          columns={columns}
+          dataSource={dataUser}
+          loading={loading}
+          pagination={false}
+        />
 
         <Modal
-          title={editingUser ? "Editar Usuário" : "Adicionar Usuário"}
+          title={editingUser ? "Editar usuário" : "Adicionar usuário"}
           open={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
           footer={[
             <Button key="cancel" onClick={() => setIsModalVisible(false)}>
               Cancelar
             </Button>,
+
             <Button key="submit" type="primary" onClick={handleSave}>
               Salvar
             </Button>,
@@ -146,6 +233,7 @@ const UsuariosPermissoes = () => {
             >
               <Input />
             </Form.Item>
+
             <Form.Item
               label="Email"
               name="email"
@@ -159,21 +247,77 @@ const UsuariosPermissoes = () => {
             >
               <Input />
             </Form.Item>
+
             <Form.Item
-              label="Nível de Acesso"
-              name="nivelAcesso"
+              label="Senha"
+              name="senha"
               rules={[
+                !editingUser
+                  ? {
+                      required: true,
+                      message: "A senha é obrigatória",
+                    }
+                  : null,
                 {
-                  required: true,
-                  message: "Por favor, selecione o nível de acesso",
+                  min: 8,
+                  message: "A senha deve ter pelo menos 8 caracteres",
+                },
+                {
+                  pattern: /[A-Z]/,
+                  message: "A senha deve conter pelo menos uma letra maiúscula",
+                },
+                {
+                  pattern: /[a-z]/,
+                  message: "A senha deve conter pelo menos uma letra minúscula",
+                },
+                {
+                  pattern: /\d/,
+                  message: "A senha deve conter pelo menos um número",
+                },
+                {
+                  pattern: /[!@#$%^&*(),.?":{}|<>]/,
+                  message:
+                    "A senha deve conter pelo menos um caractere especial",
                 },
               ]}
             >
-              <Select>
-                <Option value="Administrador">Administrador</Option>
-                <Option value="Professor">Professor</Option>
-                <Option value="Recepção">Recepção</Option>
-              </Select>
+              <Input.Password placeholder="********" />
+            </Form.Item>
+
+            <Form.Item
+              label="Confirme a senha"
+              name="senhaConfirmacao"
+              rules={[
+                !editingUser
+                  ? {
+                      required: true,
+                      message: "A senha é obrigatória",
+                    }
+                  : null,
+                {
+                  min: 8,
+                  message: "A senha deve ter pelo menos 8 caracteres",
+                },
+                {
+                  pattern: /[A-Z]/,
+                  message: "A senha deve conter pelo menos uma letra maiúscula",
+                },
+                {
+                  pattern: /[a-z]/,
+                  message: "A senha deve conter pelo menos uma letra minúscula",
+                },
+                {
+                  pattern: /\d/,
+                  message: "A senha deve conter pelo menos um número",
+                },
+                {
+                  pattern: /[!@#$%^&*(),.?":{}|<>]/,
+                  message:
+                    "A senha deve conter pelo menos um caractere especial",
+                },
+              ]}
+            >
+              <Input.Password placeholder="********" />
             </Form.Item>
           </Form>
         </Modal>

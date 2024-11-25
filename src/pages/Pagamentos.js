@@ -120,7 +120,7 @@ const Pagamentos = () => {
       const values = await form.validateFields();
 
       if (editingRecord) {
-        const success = await pagamentoService.updatePagamento({
+        const { success } = await pagamentoService.updatePagamento({
           pagamento: {
             ...values,
             idPlanoAluno: alunos.find((aluno) => aluno.id === values.nome)
@@ -146,7 +146,7 @@ const Pagamentos = () => {
           description: "Pagamento atualizado com sucesso.",
         });
       } else {
-        const success = await pagamentoService.createPagamento({
+        const { success } = await pagamentoService.createPagamento({
           pagamento: {
             ...values,
             idPlanoAluno: alunos.find((aluno) => aluno.id === values.nome)
