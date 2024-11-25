@@ -33,7 +33,7 @@ const MainPage = () => {
   const getData = async () => {
     setLoading(true);
 
-    const { data } = await AlunosService.getData({});
+    const { data } = await AlunosService.getData({ showAll: true });
 
     setDataSource(data);
 

@@ -1,9 +1,9 @@
 import { Api } from "../api";
 
 export const AlunosService = {
-  getData: async ({ perPage = 10, currentPage = 1 }) => {
+  getData: async ({ perPage = 10, currentPage = 1, showAll = false }) => {
     const { data } = await Api.get(
-      `/aluno?perPage=${perPage}&currentPage=${currentPage}`
+      `/aluno?perPage=${perPage}&currentPage=${currentPage}&showAll=${showAll}`
     );
 
     return data;
