@@ -9,6 +9,7 @@ import {
   Space,
   Spin,
   Table,
+  Tag
 } from "antd";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -16,6 +17,7 @@ import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
 import { PlanoService } from "../services/plano/PlanoService";
 import { maskCEP, maskCPF, maskPhone } from "../utils/mask";
+import { SearchOutlined } from "@ant-design/icons";
 
 const MainPage = () => {
   const [dataSource, setDataSource] = useState([]);
@@ -236,9 +238,55 @@ const MainPage = () => {
 
   const columns = [
     {
-      title: "Nome",
+      title: "Nome do Aluno",
       dataIndex: "nome",
       key: "nome",
+      sorter: (a, b) => a.nome.localeCompare(b.nome),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="Buscar por nome"
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => confirm()} // Confirma ao pressionar Enter
+            style={{ marginBottom: 8, display: "block" }}
+          />
+          <Button
+            type="primary"
+            onClick={() => confirm()}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Buscar
+          </Button>
+          <Button
+            onClick={() => {
+              clearFilters();
+              confirm();
+            }}
+            size="small"
+            style={{ width: 90, marginTop: 8 }}
+          >
+            Limpar
+          </Button>
+        </div>
+      ),
+      filterIcon: (filtered) => (
+        <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
+      ),
+      onFilter: (value, record) => record.nome.toLowerCase().includes(value.toLowerCase()),
+    },
+    {
+      title: "Status",
+      dataIndex: "isActive",
+      key: "isActive",
+      sorter: (a, b) => a.isActive.toString().localeCompare(b.isActive.toString()),
+      render: (_, record) => (
+        <Tag color={record.isActive ? "green" : "red"}>
+          {record.isActive ? "Ativo" : "Inativo"}
+        </Tag>
+      ),
     },
     {
       title: "RG",
@@ -298,22 +346,7 @@ const MainPage = () => {
               Adicionar Aluno
             </Button>
 
-            <Input
-              placeholder="Buscar por nome"
-              value={searchText}
-              onChange={handleSearch}
-              style={{ width: 200 }}
-            />
 
-            <Select
-              defaultValue="Ordenar por Nome"
-              onChange={handleSort}
-              style={{ width: 200 }}
-            >
-              <Select.Option value="name">Ordenar por Nome</Select.Option>
-
-              <Select.Option value="status">Ordenar por Status</Select.Option>
-            </Select>
           </Space>
 
           <Table columns={columns} dataSource={dataSource} pagination={false} />
