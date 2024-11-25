@@ -18,6 +18,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="*" element={<Login />} />
         {token ? (
           <>
             <Route path="/main" element={<MainPage />} />
