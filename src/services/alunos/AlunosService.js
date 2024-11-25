@@ -1,9 +1,9 @@
 import { Api } from "../api";
 
 export const AlunosService = {
-  getData: async ({ perPage = 10, currentPage = 1 }) => {
+  getData: async ({ perPage = 10, currentPage = 1, showAll = false }) => {
     const { data } = await Api.get(
-      `/aluno?perPage=${perPage}&currentPage=${currentPage}`
+      `/aluno?perPage=${perPage}&currentPage=${currentPage}&showAll=${showAll}`
     );
 
     return data;
@@ -37,7 +37,7 @@ export const AlunosService = {
 
     const { data } = await Api.post(`/aluno`, dataToCreate);
 
-    return data?.success;
+    return data;
   },
 
   updateAluno: async ({ aluno, id }) => {
@@ -62,12 +62,12 @@ export const AlunosService = {
 
     const { data } = await Api.put(`/aluno/${id}`, dataToUpdate);
 
-    return data.status;
+    return data;
   },
 
   removeById: async ({ id }) => {
     const { data } = await Api.delete(`/aluno/${id}`);
 
-    return data?.success;
+    return data;
   },
 };
