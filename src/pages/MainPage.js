@@ -28,6 +28,8 @@ const MainPage = () => {
   const [editingRecord, setEditingRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const [helpModalVisible, setHelpModalVisible] = useState(false);
+
 
   const getData = async () => {
     setLoading(true);
@@ -599,6 +601,45 @@ const MainPage = () => {
           )}
         </Modal>
       </div>
+      <Button
+        style={{
+          position: "fixed",
+          bottom: "16px",
+          right: "16px",
+          backgroundColor: "black",
+          color: "white",
+          borderRadius: "50%",
+          width: "48px",
+          height: "48px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "24px"
+        }}
+        onClick={() => setHelpModalVisible(true)}
+      >
+        ?
+      </Button>
+      <Modal
+        title="Ajuda"
+        open={helpModalVisible}
+        onCancel={() => setHelpModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setHelpModalVisible(false)}>
+            Fechar
+          </Button>
+        ]}
+      >
+        <p>Bem-vindo à página de gestão de alunos!</p>
+        <ul>
+          <li>Use o botão "Adicionar Aluno" para registrar novos alunos.</li>
+          <li>Utilize a busca para encontrar alunos pelo nome.</li>
+          <li>Clique em "Editar" para modificar as informações de um aluno.</li>
+          <li>Clique em "Excluir" para remover um aluno.</li>
+        </ul>
+        <p>Para mais dúvidas, entre em contato com o suporte.</p>
+      </Modal>
+
     </div>
   );
 };
