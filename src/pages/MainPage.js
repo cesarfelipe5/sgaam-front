@@ -1,4 +1,4 @@
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import {
   Button,
   Form,
@@ -7,22 +7,20 @@ import {
   notification,
   Select,
   Space,
-  Spin,
   Table,
-  Tag
+  Tag,
 } from "antd";
+import * as cepPromise from "cep-promise";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
 import { PlanoService } from "../services/plano/PlanoService";
 import { maskCEP, maskCPF, maskPhone } from "../utils/mask";
-import { SearchOutlined } from "@ant-design/icons";
 
 const MainPage = () => {
   const [dataSource, setDataSource] = useState([]);
   const [dataPlanos, setDataPlanos] = useState([]);
-  const [searchText, setSearchText] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [viewDetailsVisible, setViewDetailsVisible] = useState(false);
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false); // Modal de confirmação
@@ -30,9 +28,6 @@ const MainPage = () => {
   const [editingRecord, setEditingRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
-  const [sortKey, setSortKey] = useState("name");
-  const [helpModalVisible, setHelpModalVisible] = useState(false);
-
 
   const getData = async () => {
     setLoading(true);
@@ -212,32 +207,37 @@ const MainPage = () => {
     setModalVisible(false);
 
     setViewDetailsVisible(false);
+
     setDeleteConfirmVisible(false); // Fechar modal de exclusão
+
     form.resetFields();
   };
 
-  const handleSort = (value) => {
-    setSortKey(value);
-    const sortedData = [...dataSource].sort((a, b) => {
-      if (value === "status") {
-        const statusOrder = { Ativo: 1, Inativo: 2 };
-        return (
-          statusOrder[a.status] - statusOrder[b.status] ||
-          a?.name?.localeCompare(b.name)
-        );
-      }
-      return a[value]?.localeCompare(b[value]);
-    });
-    setDataSource(sortedData);
-  };
+  const onChangeCep = async (e) => {
+    const cep = e.target.value;
 
-  const handleSearch = (e) => {
-    const searchValue = e.target.value.toLowerCase();
-    setSearchText(searchValue);
-    const filteredData = dataSource.filter((item) =>
-      item.name.toLowerCase().includes(searchValue)
-    );
-    setDataSource(filteredData);
+    const maskedValue = maskCEP({ value: cep });
+
+    form.setFieldsValue({ cep: maskedValue });
+
+    if (cep.length === 9) {
+      try {
+        const dataAddress = await cepPromise(cep);
+
+        if (!dataAddress?.street) {
+          return;
+        }
+
+        form.setFieldsValue({
+          logradouro: dataAddress.street,
+          bairro: dataAddress.neighborhood,
+          cidade: dataAddress.city,
+          uf: dataAddress.state,
+        });
+      } catch (error) {
+        console.log("Cep não encontrado");
+      }
+    }
   };
 
   const columns = [
@@ -246,12 +246,19 @@ const MainPage = () => {
       dataIndex: "nome",
       key: "nome",
       sorter: (a, b) => a.nome.localeCompare(b.nome),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }) => (
         <div style={{ padding: 8 }}>
           <Input
             placeholder="Buscar por nome"
             value={selectedKeys[0]}
-            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
             onPressEnter={() => confirm()} // Confirma ao pressionar Enter
             style={{ marginBottom: 8, display: "block" }}
           />
@@ -279,13 +286,15 @@ const MainPage = () => {
       filterIcon: (filtered) => (
         <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
       ),
-      onFilter: (value, record) => record.nome.toLowerCase().includes(value.toLowerCase()),
+      onFilter: (value, record) =>
+        record.nome.toLowerCase().includes(value.toLowerCase()),
     },
     {
       title: "Status",
       dataIndex: "isActive",
       key: "isActive",
-      sorter: (a, b) => a.isActive.toString().localeCompare(b.isActive.toString()),
+      sorter: (a, b) =>
+        a.isActive.toString().localeCompare(b.isActive.toString()),
       render: (_, record) => (
         <Tag color={record.isActive ? "green" : "red"}>
           {record.isActive ? "Ativo" : "Inativo"}
@@ -337,306 +346,259 @@ const MainPage = () => {
   return (
     <div>
       <DrawerMenu />
-        
-      <Spin spinning={loading}>
-        <div style={{ padding: "16px" }}>
-          <Space style={{ marginBottom: "16px" }}>
-            <Button
-              style={{ background: "black" }}
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
+
+      <div style={{ padding: "16px" }}>
+        <Space style={{ marginBottom: "16px" }}>
+          <Button
+            style={{ background: "black" }}
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+          >
+            Adicionar Aluno
+          </Button>
+        </Space>
+
+        <Table
+          columns={columns}
+          dataSource={dataSource}
+          pagination={false}
+          loading={loading}
+        />
+
+        <Modal
+          title="Confirmar Exclusão"
+          open={deleteConfirmVisible}
+          onOk={handleDelete}
+          onCancel={handleCancel}
+          okText="Sim"
+          cancelText="Não"
+        >
+          <p>
+            Tem certeza de que deseja excluir o aluno{" "}
+            <strong>{recordToDelete?.nome}</strong>?
+          </p>
+        </Modal>
+
+        <Modal
+          title={editingRecord ? "Editar Aluno" : "Adicionar Aluno"}
+          open={modalVisible}
+          onOk={handleOk}
+          onCancel={handleCancel}
+          okText="Salvar"
+          cancelText="Cancelar"
+        >
+          <Form form={form} layout="vertical" name="studentForm">
+            <Form.Item
+              name="plano"
+              label="Plano"
+              rules={[{ required: true, message: "Plano é obrigatório" }]}
             >
-              Adicionar Aluno
-            </Button>
+              <Select>
+                {dataPlanos.map((plano) => (
+                  <Select.Option key={plano.id} value={plano.id}>
+                    {plano.nome}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item
+              name="nome"
+              label="Nome"
+              rules={[{ required: true, message: "Nome é obrigatório" }]}
+            >
+              <Input />
+            </Form.Item>
 
+            <Form.Item
+              name="cpf"
+              label="CPF"
+              rules={[
+                { required: true, message: "CPF é obrigatório" },
+                {
+                  pattern: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
+                  message: "CPF deve estar no formato 123.456.789-00",
+                },
+              ]}
+            >
+              <Input
+                maxLength={14}
+                onChange={(e) => {
+                  const maskedValue = maskCPF({ value: e.target.value });
+                  form.setFieldsValue({ cpf: maskedValue });
+                }}
+                placeholder="123.456.789-00"
+              />
+            </Form.Item>
 
-          </Space>
+            <Form.Item
+              name="rg"
+              label="RG"
+              rules={[{ required: true, message: "RG é obrigatório" }]}
+            >
+              <Input maxLength={14} />
+            </Form.Item>
 
-          <Table columns={columns} dataSource={dataSource} pagination={false} />
+            <Form.Item
+              name="cep"
+              label="CEP"
+              rules={[
+                { required: true, message: "CEP é obrigatório" },
+                {
+                  pattern: /^\d{5}-\d{3}$/,
+                  message: "CEP deve estar no formato 12345-678",
+                },
+              ]}
+            >
+              <Input
+                maxLength={9}
+                onChange={onChangeCep}
+                placeholder="00000-000"
+              />
+            </Form.Item>
 
-          <Modal
-            title="Confirmar Exclusão"
-            open={deleteConfirmVisible}
-            onOk={handleDelete}
-            onCancel={handleCancel}
-            okText="Sim"
-            cancelText="Não"
-          >
-            <p>
-              Tem certeza de que deseja excluir o aluno{" "}
-              <strong>{recordToDelete?.nome}</strong>?
-            </p>
-          </Modal>
+            <Form.Item
+              name="logradouro"
+              label="Logradouro"
+              rules={[{ required: true, message: "Logradouro é obrigatório" }]}
+            >
+              <Input />
+            </Form.Item>
 
-          <Modal
-            title={editingRecord ? "Editar Aluno" : "Adicionar Aluno"}
-            open={modalVisible}
-            onOk={handleOk}
-            onCancel={handleCancel}
-            okText="Salvar"
-            cancelText="Cancelar"
-          >
-            <Form form={form} layout="vertical" name="studentForm">
-              <Form.Item
-                name="plano"
-                label="Plano"
-                rules={[{ required: true, message: "Plano é obrigatório" }]}
-              >
-                <Select>
-                  {dataPlanos.map((plano) => (
-                    <Select.Option key={plano.id} value={plano.id}>
-                      {plano.nome}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-              <Form.Item
-                name="nome"
-                label="Nome"
-                rules={[{ required: true, message: "Nome é obrigatório" }]}
-              >
-                <Input />
-              </Form.Item>
+            <Form.Item
+              name="numero"
+              label="Número"
+              rules={[{ required: true, message: "Número é obrigatório" }]}
+            >
+              <Input />
+            </Form.Item>
 
-              <Form.Item
-                name="cpf"
-                label="CPF"
-                rules={[
-                  { required: true, message: "CPF é obrigatório" },
-                  {
-                    pattern: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
-                    message: "CPF deve estar no formato 123.456.789-00",
-                  },
-                ]}
-              >
-                <Input
-                  maxLength={14}
-                  onChange={(e) => {
-                    const maskedValue = maskCPF({ value: e.target.value });
-                    form.setFieldsValue({ cpf: maskedValue });
-                  }}
-                  placeholder="123.456.789-00"
-                />
-              </Form.Item>
+            <Form.Item
+              name="bairro"
+              label="Bairro"
+              rules={[{ required: true, message: "Bairro é obrigatório" }]}
+            >
+              <Input />
+            </Form.Item>
 
-              <Form.Item
-                name="rg"
-                label="RG"
-                rules={[{ required: true, message: "RG é obrigatório" }]}
-              >
-                <Input maxLength={14} />
-              </Form.Item>
+            <Form.Item
+              name="cidade"
+              label="Cidade"
+              rules={[{ required: true, message: "Cidade é obrigatório" }]}
+            >
+              <Input />
+            </Form.Item>
 
-              <Form.Item
-                name="cep"
-                label="CEP"
-                rules={[
-                  { required: true, message: "CEP é obrigatório" },
-                  {
-                    pattern: /^\d{5}-\d{3}$/,
-                    message: "CEP deve estar no formato 12345-678",
-                  },
-                ]}
-              >
-                <Input
-                  maxLength={9}
-                  onChange={(e) => {
-                    const maskedValue = maskCEP({ value: e.target.value });
-                    form.setFieldsValue({ cep: maskedValue });
-                  }}
-                  placeholder="00000-000"
-                />
-              </Form.Item>
+            <Form.Item
+              name="uf"
+              label="UF"
+              rules={[{ required: true, message: "UF é obrigatório" }]}
+            >
+              <Input
+                maxLength={2}
+                onInput={(e) => (e.target.value = e.target.value.toUpperCase())}
+              />
+            </Form.Item>
 
-              <Form.Item
-                name="logradouro"
-                label="Logradouro"
-                rules={[
-                  { required: true, message: "Logradouro é obrigatório" },
-                ]}
-              >
-                <Input />
-              </Form.Item>
+            <Form.Item
+              name="tipo"
+              label="Tipo de telefone"
+              rules={[
+                {
+                  required: true,
+                  message: "O tipo do telefone é obrigatório",
+                },
+              ]}
+            >
+              <Select>
+                <Select.Option value="Residencial">Residencial</Select.Option>
+                <Select.Option value="Comercial">Comercial</Select.Option>
+                <Select.Option value="Celular">Celular</Select.Option>
+              </Select>
+            </Form.Item>
 
-              <Form.Item
-                name="numero"
-                label="Número"
-                rules={[{ required: true, message: "Número é obrigatório" }]}
-              >
-                <Input />
-              </Form.Item>
+            <Form.Item
+              name="numero_telefone"
+              label="Número"
+              rules={[
+                { required: true, message: "Número é obrigatório" },
+                {
+                  pattern: /^\(\d{2}\) \d \d{4}-\d{4}$/,
+                  message: "O número deve estar com DDD",
+                },
+              ]}
+            >
+              <Input
+                maxLength={16}
+                onChange={(e) => {
+                  const maskedTelefone = maskPhone({ value: e.target.value });
+                  form.setFieldsValue({ numero_telefone: maskedTelefone });
+                }}
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
 
-              <Form.Item
-                name="bairro"
-                label="Bairro"
-                rules={[{ required: true, message: "Bairro é obrigatório" }]}
-              >
-                <Input />
-              </Form.Item>
+        <Modal
+          title="Detalhes do Aluno"
+          open={viewDetailsVisible}
+          onCancel={handleCancel}
+          footer={null}
+        >
+          {editingRecord && (
+            <div>
+              <p>
+                <strong>Plano:</strong> {editingRecord.planos[0]?.nome}
+              </p>
 
-              <Form.Item
-                name="cidade"
-                label="Cidade"
-                rules={[{ required: true, message: "Cidade é obrigatório" }]}
-              >
-                <Input />
-              </Form.Item>
+              <p>
+                <strong>Nome:</strong> {editingRecord.nome}
+              </p>
 
-              <Form.Item
-                name="uf"
-                label="UF"
-                rules={[{ required: true, message: "UF é obrigatório" }]}
-              >
-                <Input
-                  maxLength={2}
-                  onInput={(e) =>
-                    (e.target.value = e.target.value.toUpperCase())
-                  }
-                />
-              </Form.Item>
+              <p>
+                <strong>CPF:</strong> {maskCPF({ value: editingRecord.cpf })}
+              </p>
 
-              <Form.Item
-                name="tipo"
-                label="Tipo de telefone"
-                rules={[
-                  {
-                    required: true,
-                    message: "O tipo do telefone é obrigatório",
-                  },
-                ]}
-              >
-                <Select>
-                  <Select.Option value="Residencial">Residencial</Select.Option>
-                  <Select.Option value="Comercial">Comercial</Select.Option>
-                  <Select.Option value="Celular">Celular</Select.Option>
-                </Select>
-              </Form.Item>
+              <p>
+                <strong>RG:</strong> {editingRecord.rg}
+              </p>
 
-              <Form.Item
-                name="numero_telefone"
-                label="Número"
-                rules={[
-                  { required: true, message: "Número é obrigatório" },
-                  {
-                    pattern: /^\(\d{2}\) \d \d{4}-\d{4}$/,
-                    message: "O número deve estar com DDD",
-                  },
-                ]}
-              >
-                <Input
-                  maxLength={16}
-                  onChange={(e) => {
-                    const maskedTelefone = maskPhone({ value: e.target.value });
-                    form.setFieldsValue({ numero_telefone: maskedTelefone });
-                  }}
-                />
-              </Form.Item>
-            </Form>
-          </Modal>
+              <p>
+                <strong>CEP:</strong> {maskCEP({ value: editingRecord.cep })}
+              </p>
 
-          <Modal
-            title="Detalhes do Aluno"
-            open={viewDetailsVisible}
-            onCancel={handleCancel}
-            footer={null}
-          >
-            {editingRecord && (
-              <div>
-                <p>
-                  <strong>Plano:</strong> {editingRecord.planos[0]?.nome}
-                </p>
+              <p>
+                <strong>Logradouro:</strong> {editingRecord.logradouro}
+              </p>
 
-                <p>
-                  <strong>Nome:</strong> {editingRecord.nome}
-                </p>
+              <p>
+                <strong>Número: </strong> {editingRecord.numero}
+              </p>
 
-                <p>
-                  <strong>CPF:</strong> {maskCPF({ value: editingRecord.cpf })}
-                </p>
+              <p>
+                <strong>Bairro:</strong> {editingRecord.bairro}
+              </p>
 
-                <p>
-                  <strong>RG:</strong> {editingRecord.rg}
-                </p>
+              <p>
+                <strong>Cidade:</strong> {editingRecord.cidade}
+              </p>
 
-                <p>
-                  <strong>CEP:</strong> {maskCEP({ value: editingRecord.cep })}
-                </p>
+              <p>
+                <strong>Estado:</strong> {editingRecord.uf}
+              </p>
 
-                <p>
-                  <strong>Logradouro:</strong> {editingRecord.logradouro}
-                </p>
+              <p>
+                <strong>Tipo telefone:</strong> {editingRecord.tipo}
+              </p>
 
-                <p>
-                  <strong>Número: </strong> {editingRecord.numero}
-                </p>
-
-                <p>
-                  <strong>Bairro:</strong> {editingRecord.bairro}
-                </p>
-
-                <p>
-                  <strong>Cidade:</strong> {editingRecord.cidade}
-                </p>
-
-                <p>
-                  <strong>Estado:</strong> {editingRecord.uf}
-                </p>
-
-                <p>
-                  <strong>Tipo telefone:</strong> {editingRecord.tipo}
-                </p>
-
-                <p>
-                  <strong>Telefone:</strong>
-                  {maskPhone({ value: editingRecord.numero_telefone })}
-                </p>
-              </div>
-            )}
-          </Modal>
-        </div>
-      </Spin>
-      <Button
-  style={{
-    position: "fixed",
-    bottom: "16px",
-    right: "16px",
-    backgroundColor: "black",
-    color: "white",
-    borderRadius: "50%",
-    width: "48px",
-    height: "48px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "24px"
-  }}
-  onClick={() => setHelpModalVisible(true)}
->
-  ?
-</Button>
-<Modal
-  title="Ajuda"
-  open={helpModalVisible}
-  onCancel={() => setHelpModalVisible(false)}
-  footer={[
-    <Button key="close" onClick={() => setHelpModalVisible(false)}>
-      Fechar
-    </Button>
-  ]}
->
-  <p>Bem-vindo à página de gestão de alunos!</p>
-  <ul>
-    <li>Use o botão "Adicionar Aluno" para registrar novos alunos.</li>
-    <li>Utilize a busca para encontrar alunos pelo nome.</li>
-    <li>Para ordenar a tabela por nome ou status clique no topo de suas respectivas colunas.</li>
-    <li>Clique em "Ver detalhes" para ver as informações de um aluno.</li>
-    <li>Clique em "Editar" para modificar as informações de um aluno.</li>
-    <li>Clique em "Excluir" para remover um aluno.</li>
-  </ul>
-  <p>Para mais dúvidas, entre em contato com o suporte.</p>
-</Modal>
-
+              <p>
+                <strong>Telefone:</strong>
+                {maskPhone({ value: editingRecord.numero_telefone })}
+              </p>
+            </div>
+          )}
+        </Modal>
+      </div>
     </div>
   );
 };

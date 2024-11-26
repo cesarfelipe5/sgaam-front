@@ -21,6 +21,7 @@ export const PlanoService = {
       descricao: plano.descricao,
       precoPadrao: plano.precoPadrao.replace(/[^\d]/g, "")/100,
       modalidadeIds: plano.modalidades,
+      duracao: plano.duracao,
     };
 
     const { data } = await Api.post(`/plano`, dataToCreate);
@@ -34,6 +35,7 @@ export const PlanoService = {
       descricao: plano.descricao,
       precoPadrao: plano.precoPadrao.replace(/[^\d]/g, "")/100,
       modalidadeIds: plano.modalidades,
+      duracao: plano.duracao,
     };
 
     const { data } = await Api.put(`/plano/${id}`, dataToUpdate);
