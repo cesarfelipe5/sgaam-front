@@ -1,4 +1,3 @@
-
 export const maskCPF = ({ value }) => {
   value = value.replace(/\D/g, "");
 
@@ -44,7 +43,7 @@ export const maskCEP = ({ value }) => {
 
 export const formatCurrency = (value) => {
   if (!value) {
-    return "";
+    return 0;
   }
 
   const numericValue = value.replace(/[^\d]/g, ""); // Remove não numéricos
