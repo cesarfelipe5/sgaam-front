@@ -9,6 +9,7 @@ const UsuariosPermissoes = () => {
   const [dataUser, setDataUser] = useState();
   const [loading, setLoading] = useState(null);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
+  const [deleteRecord, setDeleteRecord] = useState(null);
 
   const [form] = Form.useForm();
 
@@ -38,10 +39,10 @@ const UsuariosPermissoes = () => {
     form.setFieldsValue(record);
   };
 
-  const handleDeleteUser = async (user) => {
+  const handleDeleteUser = async () => {
     setLoading(true);
 
-    const { success } = await UsuarioService.removeById({ id: user.id });
+    const { success } = await UsuarioService.removeById({ id: deleteRecord.id });
 
     if (!success) {
       notification.error({
@@ -59,7 +60,7 @@ const UsuariosPermissoes = () => {
     });
 
     setLoading(false);
-
+    setDeleteRecord(null);
     getData();
   };
 
@@ -173,7 +174,7 @@ const UsuariosPermissoes = () => {
           <Button
             style={{ borderColor: "red", color: "red" }}
             type="link"
-            onClick={() => handleDeleteUser(record)}
+            onClick={() => setDeleteRecord(record)}
             danger
           >
             Remover
@@ -359,7 +360,19 @@ const UsuariosPermissoes = () => {
           </ul>
           <p>Para mais dúvidas, entre em contato com o suporte.</p>
         </Modal>
-
+        <Modal
+          title="Confirmar Exclusão?"
+          open={!!deleteRecord}
+          onCancel={() => setDeleteRecord(null)}
+          onOk={() => handleDeleteUser()}
+          okText="Excluir"
+          cancelText="Cancelar"
+          okButtonProps={{ danger: true }}
+        >
+          <p>
+            Tem certeza de que deseja excluir o usuario {deleteRecord?.nome}?
+          </p>
+        </Modal>
       </div>
     </>
   );
