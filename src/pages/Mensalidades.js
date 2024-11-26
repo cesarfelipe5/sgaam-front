@@ -5,6 +5,8 @@ import React, { useEffect, useState } from "react";
 import DrawerMenu from "../components/DrawerMenu";
 import { AlunosService } from "../services/alunos/AlunosService";
 import { formatCurrency } from "../utils/mask";
+import moment from "moment";
+import { SearchOutlined } from "@ant-design/icons";
 
 const Mensalidades = () => {
   const [loading, setLoading] = useState(false);
