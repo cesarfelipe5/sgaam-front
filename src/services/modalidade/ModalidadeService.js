@@ -1,8 +1,8 @@
 import { Api } from "../api";
 
 export const ModalidadeService = {
-  getData: async () => {
-    const { data } = await Api.get("/modalidade");
+  getData: async ({ showAll = false }) => {
+    const { data } = await Api.get(`/modalidade?showAll=${showAll}`);
 
     return data;
   },

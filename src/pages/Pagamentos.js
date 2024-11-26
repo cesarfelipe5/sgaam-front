@@ -27,6 +27,7 @@ const Pagamentos = () => {
   const [editingRecord, setEditingRecord] = useState(null);
   const [paymentData, setPaymenteData] = useState([]);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
+  const [deleteRecord, setDeleteRecord] = useState(null);
 
   const [form] = Form.useForm();
 
@@ -92,9 +93,9 @@ const Pagamentos = () => {
     setLoading(false);
   };
 
-  const handleDeletePayment = async (record) => {
+  const handleDeletePayment = async () => {
     const success = await pagamentoService.removeById({
-      id: record.id,
+      id: deleteRecord.id,
     });
 
     if (!success) {
@@ -115,6 +116,7 @@ const Pagamentos = () => {
       message: "Pagamento removido",
       description: "Pagamento removido com sucesso.",
     });
+    setDeleteRecord(null);
   };
 
   const handleSave = async () => {
@@ -261,6 +263,11 @@ const Pagamentos = () => {
       ),
     },
     {
+      title: "Forma de pagamento",
+      dataIndex: ["formaPagamentos", "nome"],
+      key: "formaPagamento",
+    },
+    {
       title: "Recebedor",
       // dataIndex: "recebedor",
       key: "recebedor",
@@ -288,7 +295,7 @@ const Pagamentos = () => {
           <Button
             type="link"
             danger
-            onClick={() => handleDeletePayment(record)}
+            onClick={() => setDeleteRecord(record)}
           >
             Excluir
           </Button>
@@ -377,7 +384,7 @@ const Pagamentos = () => {
             </Form.Item>
 
             <Form.Item
-              label="Valor pago"
+              label={`Valor pago`}
               name="valor"
               rules={[
                 { required: true, message: "Por favor, insira o valor pago" },
@@ -428,6 +435,19 @@ const Pagamentos = () => {
         >
           ?
         </Button>
+        <Modal
+          title="Confirmar Exclusão?"
+          open={!!deleteRecord}
+          onCancel={() => setDeleteRecord(null)}
+          onOk={() => handleDeletePayment()}
+          okText="Excluir"
+          cancelText="Cancelar"
+          okButtonProps={{ danger: true }}
+        >
+          <p>
+            Tem certeza de que deseja excluir o pagamento?
+          </p>
+        </Modal>
         <Modal
           title="Ajuda"
           open={helpModalVisible}

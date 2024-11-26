@@ -11,6 +11,7 @@ const EditableTable = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [helpModalVisible, setHelpModalVisible] = useState(false);
+  const [deleteRecord, setDeleteRecord] = useState(null);
 
   const isEditing = (record) => record.id === editing?.id;
 
@@ -73,9 +74,9 @@ const EditableTable = () => {
     setLoading(false);
   };
 
-  const handleRemove = async (id) => {
+  const handleRemove = async () => {
     setLoading(true);
-    const success = await ModalidadeService.removeById({ id });
+    const success = await ModalidadeService.removeById({ id: deleteRecord.id });
 
     if (!success) {
       toast.error(
@@ -88,7 +89,7 @@ const EditableTable = () => {
     }
 
     toast.success("Modalidade removida com sucesso.");
-
+    setDeleteRecord(null);
     getData();
 
     setLoading(false);
@@ -137,7 +138,7 @@ const EditableTable = () => {
             Editar
           </Button>
 
-          <Button type="danger" onClick={() => handleRemove(record.id)}>
+          <Button type="danger" onClick={() => setDeleteRecord(record)}>
             Remover
           </Button>
         </>
@@ -165,7 +166,7 @@ const EditableTable = () => {
   const getData = async () => {
     setLoading(true);
 
-    const { data } = await ModalidadeService.getData();
+    const { data } = await ModalidadeService.getData({showAll: true});
 
     const newData = data.map((item) => ({
       ...item,
@@ -270,6 +271,19 @@ const EditableTable = () => {
         >
           ?
         </Button>
+        <Modal
+          title="Confirmar Exclusão?"
+          open={!!deleteRecord}
+          onCancel={() => setDeleteRecord(null)}
+          onOk={() => handleRemove()}
+          okText="Excluir"
+          cancelText="Cancelar"
+          okButtonProps={{ danger: true }}
+        >
+          <p>
+            Tem certeza de que deseja excluir a modalidade "{deleteRecord?.nome}"?
+          </p>
+        </Modal>
         <Modal
           title="Ajuda"
           open={helpModalVisible}
