@@ -13,6 +13,7 @@ import React, { useEffect, useState } from "react";
 import DrawerMenu from "../components/DrawerMenu";
 import { ModalidadeService } from "../services/modalidade/ModalidadeService";
 import { PlanoService } from "../services/plano/PlanoService";
+import { formatCurrency } from "../utils/mask";
 
 const { Option } = Select;
 
@@ -23,6 +24,8 @@ const Planos = () => {
   const [modalidades, setModalidades] = useState([]);
   const [deleteRecord, setDeleteRecord] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [helpModalVisible, setHelpModalVisible] = useState(false);
+
 
   const [form] = Form.useForm();
 
@@ -72,6 +75,7 @@ const Planos = () => {
     form.setFieldsValue({
       ...record,
       modalidades: record.modalidades.map((modalidade) => modalidade.id),
+      precoPadrao: formatCurrency(record.precoPadrao)
     });
 
     setEditingRecord(record);
@@ -223,6 +227,7 @@ const Planos = () => {
       title: "Preço padrão",
       dataIndex: "precoPadrao",
       key: "precoPadrao",
+      render: (_, record) => <div style={{ justifyContent: 'flex-end', display: 'flex' }}>{formatCurrency(record.precoPadrao)}</div>,
     },
     {
       title: "Ações",
@@ -341,7 +346,12 @@ const Planos = () => {
                 { required: true, message: "Por favor, insira o preço padrão" },
               ]}
             >
-              <Input prefix="R$" placeholder="Preço padrão do plano" />
+              <Input
+                onChange={(e) => {
+                  const maskedValue = formatCurrency(e.target.value);
+                  form.setFieldsValue({ precoPadrao: maskedValue });
+                }}
+                placeholder="Preço padrão do plano" />
             </Form.Item>
           </Form>
         </Modal>
@@ -359,6 +369,45 @@ const Planos = () => {
             Tem certeza de que deseja excluir o plano "{deleteRecord?.nome}"?
           </p>
         </Modal>
+        <Button
+          style={{
+            position: "fixed",
+            bottom: "16px",
+            right: "16px",
+            backgroundColor: "black",
+            color: "white",
+            borderRadius: "50%",
+            width: "48px",
+            height: "48px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "24px"
+          }}
+          onClick={() => setHelpModalVisible(true)}
+        >
+          ?
+        </Button>
+        <Modal
+          title="Ajuda"
+          open={helpModalVisible}
+          onCancel={() => setHelpModalVisible(false)}
+          footer={[
+            <Button key="close" onClick={() => setHelpModalVisible(false)}>
+              Fechar
+            </Button>
+          ]}
+        >
+          <p>Bem-vindo à página de gestão de planos!</p>
+          <ul>
+            <li>Use o botão "Novo plano" para adicionar um novo plano à lista.</li>
+            <li>Clique em "Editar" para atualizar as informações de um plano existente.</li>
+            <li>Clique em "Excluir" para remover um plano permanentemente.</li>
+            <li>Confira detalhes como duração, modalidades e preço padrão diretamente na tabela.</li>
+          </ul>
+          <p>Para mais dúvidas, entre em contato com o suporte.</p>
+        </Modal>
+
       </div>
     </>
   );

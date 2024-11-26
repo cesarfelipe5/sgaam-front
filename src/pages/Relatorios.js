@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Table, Select, DatePicker, Space, Typography } from 'antd';
+import { Button, Modal, Table, Select, DatePicker, Space, Typography } from 'antd';
 import DrawerMenu from '../components/DrawerMenu';
 import moment from 'moment';
 import 'moment/locale/pt-br';
@@ -10,6 +10,8 @@ const { Title } = Typography;
 const Relatorios = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('lastMonth'); // Período 'Último mês' por padrão
   const [customRange, setCustomRange] = useState(null);
+  const [helpModalVisible, setHelpModalVisible] = useState(false);
+
 
   // Handler para alterar o período selecionado
   const handlePeriodChange = (value) => {
@@ -60,7 +62,7 @@ const Relatorios = () => {
       <DrawerMenu />
       <div style={{ padding: '16px' }}>
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          
+
           {/* Título da página e exibição das matrículas ativas */}
           <Title level={4}>Matrículas Ativas: {activeEnrollments}</Title>
 
@@ -70,7 +72,7 @@ const Relatorios = () => {
             <Select
               defaultValue="lastMonth"
               onChange={handlePeriodChange}
-              style={{ width: 220}}
+              style={{ width: 220 }}
             >
               <Select.Option value="allTime">Desde Sempre</Select.Option>
               <Select.Option value="lastYear">Último Ano</Select.Option>
@@ -98,6 +100,43 @@ const Relatorios = () => {
             bordered
           />
         </Space>
+        <Button
+          style={{
+            position: "fixed",
+            bottom: "16px",
+            right: "16px",
+            backgroundColor: "black",
+            color: "white",
+            borderRadius: "50%",
+            width: "48px",
+            height: "48px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "24px"
+          }}
+          onClick={() => setHelpModalVisible(true)}
+        >
+          ?
+        </Button>
+        <Modal
+          title="Ajuda"
+          open={helpModalVisible}
+          onCancel={() => setHelpModalVisible(false)}
+          footer={[
+            <Button key="close" onClick={() => setHelpModalVisible(false)}>
+              Fechar
+            </Button>
+          ]}
+        >
+          <p>Bem-vindo à página de relatórios!</p>
+          <ul>
+            <li>Selecione o período desejado para a apresentação dos dados.</li>
+            <li>As quantidades de alunos matriculados, faturamento e aulas experimentais no período escolhido são apresentadas.</li>
+          </ul>
+          <p>Para mais dúvidas, entre em contato com o suporte.</p>
+        </Modal>
+
       </div>
     </>
   );

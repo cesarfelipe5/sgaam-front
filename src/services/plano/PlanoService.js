@@ -19,7 +19,7 @@ export const PlanoService = {
     const dataToCreate = {
       nome: plano.nome,
       descricao: plano.descricao,
-      precoPadrao: plano.precoPadrao,
+      precoPadrao: plano.precoPadrao.replace(/[^\d]/g, "")/100,
       modalidadeIds: plano.modalidades,
     };
 
@@ -32,7 +32,7 @@ export const PlanoService = {
     const dataToUpdate = {
       nome: plano.nome,
       descricao: plano.descricao,
-      precoPadrao: plano.precoPadrao,
+      precoPadrao: plano.precoPadrao.replace(/[^\d]/g, "")/100,
       modalidadeIds: plano.modalidades,
     };
 
