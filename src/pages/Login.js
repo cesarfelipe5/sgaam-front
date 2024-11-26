@@ -9,25 +9,34 @@ const { Link, Title } = Typography;
 const Login = () => {
   const [loading, setLoading] = useState(false);
 
+  const [form] = Form.useForm();
+
   const navigate = useNavigate();
 
   const handleLogin = async (values) => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const { token } = await AuthService.login({
-      email: values.email,
-      password: values.password,
-    });
+      const { token } = await AuthService.login({
+        email: values.email,
+        password: values.password,
+      });
 
-    if (!token) {
-      return;
+      localStorage.setItem("token", token);
+
+      setLoading(false);
+
+      navigate("/main");
+    } catch (error) {
+      setLoading(false);
+
+      form.setFields([
+        {
+          name: "email",
+          errors: ["Usuário ou senha inválidos"], // Mensagem de erro
+        },
+      ]);
     }
-
-    localStorage.setItem("token", token);
-
-    setLoading(false);
-
-    navigate("/main");
   };
 
   return (
@@ -60,6 +69,7 @@ const Login = () => {
         }}
       >
         <Form
+          form={form}
           name="loginForm"
           layout="vertical"
           onFinish={handleLogin}

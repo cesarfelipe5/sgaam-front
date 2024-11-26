@@ -191,24 +191,20 @@ const Pagamentos = () => {
       title: "Data do Pagamento",
       dataIndex: "dataPagamento",
       key: "dataPagamento",
-      render: (dataPagamento) =>
-        moment(dataPagamento).format("DD/MM/YYYY"),
+      render: (dataPagamento) => moment(dataPagamento).format("DD/MM/YYYY"),
     },
     {
       title: "Valor Pago",
       dataIndex: "valor",
       key: "valor",
-      render: (_, record) => (
-        formatCurrency(record.valor)
-      ),
+      render: (_, record) => formatCurrency(record.valor),
     },
     {
       title: "Valor do Plano",
       dataIndex: ["planoAlunos", "plano", "precoPadrao"],
       key: "valorPlano",
-      render: (_, record) => (
-        formatCurrency(record.planoAlunos.plano.precoPadrao)
-      ),
+      render: (_, record) =>
+        formatCurrency(record.planoAlunos.plano.precoPadrao),
     },
     {
       title: "Recebedor",

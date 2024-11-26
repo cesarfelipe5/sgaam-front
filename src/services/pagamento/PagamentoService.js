@@ -19,7 +19,9 @@ export const pagamentoService = {
   createPagamento: async ({ pagamento }) => {
     const dataToCreate = {
       valor: pagamento.valor,
-      dataPagamento: moment(pagamento.dataPagamento).toISOString(),
+      dataPagamento: moment(
+        pagamento.dataPagamento.format("DD/MM/YYYY")
+      ).toISOString(),
       idPlanoAluno: pagamento.idPlanoAluno,
       idFormaPagamento: pagamento.formaPagamento,
       observacao: pagamento.observacao,
@@ -33,7 +35,9 @@ export const pagamentoService = {
   updatePagamento: async ({ pagamento, id }) => {
     const dataToUpdate = {
       valor: pagamento.valor,
-      dataPagamento: moment(pagamento.dataPagamento).toISOString(),
+      dataPagamento: moment(
+        pagamento.dataPagamento.format("DD/MM/YYYY")
+      ).toISOString(),
       idPlanoAluno: pagamento.idPlanoAluno,
       idFormaPagamento: pagamento.formaPagamento,
       observacao: pagamento.observacao,

@@ -9,7 +9,6 @@ import {
   Table,
 } from "antd";
 import React, { useEffect, useState } from "react";
-// import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { ModalidadeService } from "../services/modalidade/ModalidadeService";
 import { PlanoService } from "../services/plano/PlanoService";
@@ -26,11 +25,11 @@ const Planos = () => {
 
   const [form] = Form.useForm();
 
-  const mockDurations = [
-    { id: 1, label: "1 mês" },
-    { id: 2, label: "3 meses" },
-    { id: 3, label: "6 meses" },
-    { id: 4, label: "12 meses" },
+  const durations = [
+    { value: "Mensal", label: "Mensal" },
+    { value: "Trimestral", label: "Trimestral" },
+    { value: "Semestral", label: "Semestral" },
+    { value: "Anual", label: "Anual" },
   ];
 
   const getData = async () => {
@@ -68,10 +67,11 @@ const Planos = () => {
       await getDataModalidades(); // Carrega as modalidades, se necessário
     }
 
+    const { data } = await PlanoService.getById({ id: record.id });
     // Configura os valores iniciais do formulário
     form.setFieldsValue({
-      ...record,
-      modalidades: record.modalidades.map((modalidade) => modalidade.id),
+      ...data,
+      modalidades: data.modalidades.map((modalidade) => modalidade.id),
     });
 
     setEditingRecord(record);
@@ -216,8 +216,7 @@ const Planos = () => {
       title: "Duração",
       dataIndex: "duracao",
       key: "duracao",
-      render: (duracao) =>
-        mockDurations.find((duration) => duration.id === duracao)?.label || "",
+      render: (duracao) => duracao,
     },
     {
       title: "Preço padrão",
@@ -326,8 +325,8 @@ const Planos = () => {
               ]}
             >
               <Select placeholder="Selecione a duração">
-                {mockDurations.map((duration) => (
-                  <Option key={duration.id} value={duration.id}>
+                {durations.map((duration) => (
+                  <Option key={duration.value} value={duration.value}>
                     {duration.label}
                   </Option>
                 ))}
