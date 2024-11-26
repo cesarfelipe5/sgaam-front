@@ -241,6 +241,7 @@ const Pagamentos = () => {
       dataIndex: "dataPagamento",
       key: "dataPagamento",
       render: (dataPagamento) => moment(dataPagamento).format("DD/MM/YYYY"),
+      sorter: (a, b) => a.dataPagamento.localeCompare(b.dataPagamento),
     },
     {
       title: "Valor Pago",

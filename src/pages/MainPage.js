@@ -28,8 +28,8 @@ const MainPage = () => {
   const [editingRecord, setEditingRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const [sortKey, setSortKey] = useState("name");
   const [helpModalVisible, setHelpModalVisible] = useState(false);
-
 
   const getData = async () => {
     setLoading(true);
@@ -601,6 +601,7 @@ const MainPage = () => {
           )}
         </Modal>
       </div>
+
       <Button
         style={{
           position: "fixed",
@@ -614,7 +615,7 @@ const MainPage = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: "24px"
+          fontSize: "24px",
         }}
         onClick={() => setHelpModalVisible(true)}
       >
@@ -627,19 +628,23 @@ const MainPage = () => {
         footer={[
           <Button key="close" onClick={() => setHelpModalVisible(false)}>
             Fechar
-          </Button>
+          </Button>,
         ]}
       >
         <p>Bem-vindo à página de gestão de alunos!</p>
         <ul>
           <li>Use o botão "Adicionar Aluno" para registrar novos alunos.</li>
           <li>Utilize a busca para encontrar alunos pelo nome.</li>
+          <li>
+            Para ordenar a tabela por nome ou status clique no topo de suas
+            respectivas colunas.
+          </li>
+          <li>Clique em "Ver detalhes" para ver as informações de um aluno.</li>
           <li>Clique em "Editar" para modificar as informações de um aluno.</li>
           <li>Clique em "Excluir" para remover um aluno.</li>
         </ul>
         <p>Para mais dúvidas, entre em contato com o suporte.</p>
       </Modal>
-
     </div>
   );
 };
