@@ -15,6 +15,7 @@ import DrawerMenu from "../components/DrawerMenu";
 import { AulaExperimentalService } from "../services/aulaExperimental/AulaExperimentalService";
 import { ModalidadeService } from "../services/modalidade/ModalidadeService";
 import { maskCPF } from "../utils/mask";
+import { SearchOutlined } from "@ant-design/icons";
 
 const AulasExperimentais = () => {
   const [loading, setLoading] = useState(false);
@@ -25,6 +26,8 @@ const AulasExperimentais = () => {
   const [form] = Form.useForm();
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState(null);
+  const [helpModalVisible, setHelpModalVisible] = useState(false);
+
 
   const { Option } = Select;
 
@@ -175,6 +178,41 @@ const AulasExperimentais = () => {
       title: "Nome do Aluno",
       dataIndex: "nome",
       key: "nome",
+      sorter: (a, b) => a.nome.localeCompare(b.nome),
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="Buscar por nome"
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => confirm()} // Confirma ao pressionar Enter
+            style={{ marginBottom: 8, display: "block" }}
+          />
+          <Button
+            type="primary"
+            onClick={() => confirm()}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Buscar
+          </Button>
+          <Button
+            onClick={() => {
+              clearFilters();
+              confirm();
+            }}
+            size="small"
+            style={{ width: 90, marginTop: 8 }}
+          >
+            Limpar
+          </Button>
+        </div>
+      ),
+      filterIcon: (filtered) => (
+        <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
+      ),
+      onFilter: (value, record) => record.nome.toLowerCase().includes(value.toLowerCase()),
     },
     {
       title: "CPF",
@@ -322,6 +360,45 @@ const AulasExperimentais = () => {
           </Form>
         </Modal>
       </div>
+      <Button
+  style={{
+    position: "fixed",
+    bottom: "16px",
+    right: "16px",
+    backgroundColor: "black",
+    color: "white",
+    borderRadius: "50%",
+    width: "48px",
+    height: "48px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "24px"
+  }}
+  onClick={() => setHelpModalVisible(true)}
+>
+  ?
+</Button>
+<Modal
+  title="Ajuda"
+  open={helpModalVisible}
+  onCancel={() => setHelpModalVisible(false)}
+  footer={[
+    <Button key="close" onClick={() => setHelpModalVisible(false)}>
+      Fechar
+    </Button>
+  ]}
+>
+  <p>Bem-vindo à página de Aulas experimentais!</p>
+  <ul>
+    <li>Use o botão "Registrar aula" para registrar novas aulas.</li>
+    <li>Utilize a busca para encontrar alunos pelo nome.</li>
+    <li>Clique em "Editar" para modificar as informações da aula.</li>
+    <li>Clique em "Excluir" para remover a aula.</li>
+  </ul>
+  <p>Para mais dúvidas, entre em contato com o suporte.</p>
+</Modal>
+
     </div>
   );
 };

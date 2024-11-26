@@ -11,6 +11,8 @@ const FormaPagamento = () => {
   const [loading, setLoading] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [form] = Form.useForm();
+  const [helpModalVisible, setHelpModalVisible] = useState(false);
+
 
   const handleAdd = () => {
     setEditingRecord(null);
@@ -189,6 +191,45 @@ const FormaPagamento = () => {
           </Form>
         </Modal>
       </div>
+      <Button
+        style={{
+          position: "fixed",
+          bottom: "16px",
+          right: "16px",
+          backgroundColor: "black",
+          color: "white",
+          borderRadius: "50%",
+          width: "48px",
+          height: "48px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "24px"
+        }}
+        onClick={() => setHelpModalVisible(true)}
+      >
+        ?
+      </Button>
+      <Modal
+        title="Ajuda"
+        open={helpModalVisible}
+        onCancel={() => setHelpModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setHelpModalVisible(false)}>
+            Fechar
+          </Button>
+        ]}
+      >
+        <p>Bem-vindo à página de gestão de formas de pagamento!</p>
+        <ul>
+          <li>Use o botão "Adicionar forma de pagamento" para criar novas formas de pagamento.</li>
+          <li>Clique em "Editar" para atualizar informações de uma forma de pagamento existente.</li>
+          <li>Clique em "Excluir" para remover uma forma de pagamento.</li>
+          <li>Confira a lista de formas de pagamento diretamente na tabela.</li>
+        </ul>
+        <p>Para mais dúvidas, entre em contato com o suporte.</p>
+      </Modal>
+
     </div>
   );
 };
