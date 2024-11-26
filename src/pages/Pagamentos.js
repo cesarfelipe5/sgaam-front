@@ -16,7 +16,6 @@ import { AlunosService } from "../services/alunos/AlunosService";
 import { formaPagamentoService } from "../services/formaPagamento/FormaPagamentoService";
 import { pagamentoService } from "../services/pagamento/PagamentoService";
 import { formatCurrency } from "../utils/mask";
-import { SearchOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -239,8 +238,7 @@ const Pagamentos = () => {
       title: "Data do Pagamento",
       dataIndex: "dataPagamento",
       key: "dataPagamento",
-      render: (dataPagamento) =>
-        moment(dataPagamento).format("DD/MM/YYYY"),
+      render: (dataPagamento) => moment(dataPagamento).format("DD/MM/YYYY"),
       sorter: (a, b) => a.dataPagamento.localeCompare(b.dataPagamento),
     },
     {
