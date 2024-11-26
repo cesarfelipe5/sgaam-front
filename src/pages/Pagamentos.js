@@ -1,3 +1,4 @@
+import { SearchOutlined } from "@ant-design/icons";
 import {
   Button,
   DatePicker,
@@ -18,7 +19,6 @@ import { formatCurrency } from "../utils/mask";
 import { SearchOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
-const { Search } = Input;
 
 const Pagamentos = () => {
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,6 @@ const Pagamentos = () => {
   const [formaPagamento, setFormaPagamento] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
-  const [searchText, setSearchText] = useState(""); // Estado para o campo de busca
   const [paymentData, setPaymenteData] = useState([]);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
 
@@ -86,7 +85,7 @@ const Pagamentos = () => {
       formaPagamento: data.formaPagamentos.id,
       observacao: data.observacao,
       dataPagamento: moment(data.dataPagamento),
-      valor: formatCurrency(data.valor)
+      valor: formatCurrency(data.valor),
     });
 
     setIsModalVisible(true);
@@ -189,13 +188,21 @@ const Pagamentos = () => {
       title: "Nome do Aluno",
       dataIndex: ["planoAlunos", "aluno", "nome"],
       key: "nome",
-      sorter: (a, b) => a.planoAlunos.aluno.nome.localeCompare(b.planoAlunos.aluno.nome),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+      sorter: (a, b) =>
+        a.planoAlunos.aluno.nome.localeCompare(b.planoAlunos.aluno.nome),
+      filterDropdown: ({
+        setSelectedKeys,
+        selectedKeys,
+        confirm,
+        clearFilters,
+      }) => (
         <div style={{ padding: 8 }}>
           <Input
             placeholder="Buscar por nome"
             value={selectedKeys[0]}
-            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onChange={(e) =>
+              setSelectedKeys(e.target.value ? [e.target.value] : [])
+            }
             onPressEnter={() => confirm()} // Confirma ao pressionar Enter
             style={{ marginBottom: 8, display: "block" }}
           />
@@ -223,7 +230,10 @@ const Pagamentos = () => {
       filterIcon: (filtered) => (
         <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
       ),
-      onFilter: (value, record) => record.planoAlunos.aluno.nome.toLowerCase().includes(value.toLowerCase()),
+      onFilter: (value, record) =>
+        record.planoAlunos.aluno.nome
+          .toLowerCase()
+          .includes(value.toLowerCase()),
     },
     {
       title: "Data do Pagamento",
@@ -238,14 +248,20 @@ const Pagamentos = () => {
       dataIndex: "valor",
       key: "valor",
       render: (valor) => (
-        <div style={{ justifyContent: 'flex-end', display: 'flex' }}>{formatCurrency(valor)}</div>
+        <div style={{ justifyContent: "flex-end", display: "flex" }}>
+          {formatCurrency(valor)}
+        </div>
       ),
     },
     {
       title: "Valor do Plano",
       dataIndex: ["planoAlunos", "planos", "precoPadrao"],
       key: "precoPadrao",
-      render: (_, record) => <div style={{ justifyContent: 'flex-end', display: 'flex' }}>{formatCurrency(record.planoAlunos.plano.precoPadrao)}</div>,
+      render: (_, record) => (
+        <div style={{ justifyContent: "flex-end", display: "flex" }}>
+          {formatCurrency(record.planoAlunos.plano.precoPadrao)}
+        </div>
+      ),
     },
     {
       title: "Recebedor",
@@ -397,45 +413,51 @@ const Pagamentos = () => {
           </Form>
         </Modal>
         <Button
-  style={{
-    position: "fixed",
-    bottom: "16px",
-    right: "16px",
-    backgroundColor: "black",
-    color: "white",
-    borderRadius: "50%",
-    width: "48px",
-    height: "48px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "24px"
-  }}
-  onClick={() => setHelpModalVisible(true)}
->
-  ?
-</Button>
-<Modal
-  title="Ajuda"
-  open={helpModalVisible}
-  onCancel={() => setHelpModalVisible(false)}
-  footer={[
-    <Button key="close" onClick={() => setHelpModalVisible(false)}>
-      Fechar
-    </Button>
-  ]}
->
-  <p>Bem-vindo à página de gestão de pagamentos!</p>
-  <ul>
-    <li>Use o botão "Novo pagamento" para registrar novos pagamentos.</li>
-    <li>Utilize a busca para encontrar alunos pelo nome.</li>
-    <li>Você pode ordenar a tabela por nome do aluno e data de pagamento, basta clicar no topo da coluna correspondente.</li>
-    <li>Clique em "Editar" para modificar as informações de um pagamento.</li>
-    <li>Clique em "Excluir" para remover um pagamento.</li>
-  </ul>
-  <p>Para mais dúvidas, entre em contato com o suporte.</p>
-</Modal>
-
+          style={{
+            position: "fixed",
+            bottom: "16px",
+            right: "16px",
+            backgroundColor: "black",
+            color: "white",
+            borderRadius: "50%",
+            width: "48px",
+            height: "48px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "24px",
+          }}
+          onClick={() => setHelpModalVisible(true)}
+        >
+          ?
+        </Button>
+        <Modal
+          title="Ajuda"
+          open={helpModalVisible}
+          onCancel={() => setHelpModalVisible(false)}
+          footer={[
+            <Button key="close" onClick={() => setHelpModalVisible(false)}>
+              Fechar
+            </Button>,
+          ]}
+        >
+          <p>Bem-vindo à página de gestão de pagamentos!</p>
+          <ul>
+            <li>
+              Use o botão "Novo pagamento" para registrar novos pagamentos.
+            </li>
+            <li>Utilize a busca para encontrar alunos pelo nome.</li>
+            <li>
+              Você pode ordenar a tabela por nome do aluno e data de pagamento,
+              basta clicar no topo da coluna correspondente.
+            </li>
+            <li>
+              Clique em "Editar" para modificar as informações de um pagamento.
+            </li>
+            <li>Clique em "Excluir" para remover um pagamento.</li>
+          </ul>
+          <p>Para mais dúvidas, entre em contato com o suporte.</p>
+        </Modal>
       </div>
     </>
   );

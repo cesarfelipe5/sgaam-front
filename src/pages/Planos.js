@@ -9,7 +9,6 @@ import {
   Table,
 } from "antd";
 import React, { useEffect, useState } from "react";
-// import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
 import { ModalidadeService } from "../services/modalidade/ModalidadeService";
 import { PlanoService } from "../services/plano/PlanoService";
@@ -26,14 +25,13 @@ const Planos = () => {
   const [loading, setLoading] = useState(false);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
 
-
   const [form] = Form.useForm();
 
-  const mockDurations = [
-    { id: 1, label: "1 mês" },
-    { id: 2, label: "3 meses" },
-    { id: 3, label: "6 meses" },
-    { id: 4, label: "12 meses" },
+  const durations = [
+    { value: "Mensal", label: "Mensal" },
+    { value: "Trimestral", label: "Trimestral" },
+    { value: "Semestral", label: "Semestral" },
+    { value: "Anual", label: "Anual" },
   ];
 
   const getData = async () => {
@@ -71,11 +69,12 @@ const Planos = () => {
       await getDataModalidades(); // Carrega as modalidades, se necessário
     }
 
+    const { data } = await PlanoService.getById({ id: record.id });
     // Configura os valores iniciais do formulário
     form.setFieldsValue({
-      ...record,
-      modalidades: record.modalidades.map((modalidade) => modalidade.id),
-      precoPadrao: formatCurrency(record.precoPadrao)
+      ...data,
+      modalidades: data.modalidades.map((modalidade) => modalidade.id),
+      precoPadrao: formatCurrency(record.precoPadrao),
     });
 
     setEditingRecord(record);
@@ -220,14 +219,17 @@ const Planos = () => {
       title: "Duração",
       dataIndex: "duracao",
       key: "duracao",
-      render: (duracao) =>
-        mockDurations.find((duration) => duration.id === duracao)?.label || "",
+      render: (duracao) => duracao,
     },
     {
       title: "Preço padrão",
       dataIndex: "precoPadrao",
       key: "precoPadrao",
-      render: (_, record) => <div style={{ justifyContent: 'flex-end', display: 'flex' }}>{formatCurrency(record.precoPadrao)}</div>,
+      render: (_, record) => (
+        <div style={{ justifyContent: "flex-end", display: "flex" }}>
+          {formatCurrency(record.precoPadrao)}
+        </div>
+      ),
     },
     {
       title: "Ações",
@@ -331,8 +333,8 @@ const Planos = () => {
               ]}
             >
               <Select placeholder="Selecione a duração">
-                {mockDurations.map((duration) => (
-                  <Option key={duration.id} value={duration.id}>
+                {durations.map((duration) => (
+                  <Option key={duration.value} value={duration.value}>
                     {duration.label}
                   </Option>
                 ))}
@@ -351,7 +353,8 @@ const Planos = () => {
                   const maskedValue = formatCurrency(e.target.value);
                   form.setFieldsValue({ precoPadrao: maskedValue });
                 }}
-                placeholder="Preço padrão do plano" />
+                placeholder="Preço padrão do plano"
+              />
             </Form.Item>
           </Form>
         </Modal>
@@ -382,7 +385,7 @@ const Planos = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "24px"
+            fontSize: "24px",
           }}
           onClick={() => setHelpModalVisible(true)}
         >
@@ -395,19 +398,26 @@ const Planos = () => {
           footer={[
             <Button key="close" onClick={() => setHelpModalVisible(false)}>
               Fechar
-            </Button>
+            </Button>,
           ]}
         >
           <p>Bem-vindo à página de gestão de planos!</p>
           <ul>
-            <li>Use o botão "Novo plano" para adicionar um novo plano à lista.</li>
-            <li>Clique em "Editar" para atualizar as informações de um plano existente.</li>
+            <li>
+              Use o botão "Novo plano" para adicionar um novo plano à lista.
+            </li>
+            <li>
+              Clique em "Editar" para atualizar as informações de um plano
+              existente.
+            </li>
             <li>Clique em "Excluir" para remover um plano permanentemente.</li>
-            <li>Confira detalhes como duração, modalidades e preço padrão diretamente na tabela.</li>
+            <li>
+              Confira detalhes como duração, modalidades e preço padrão
+              diretamente na tabela.
+            </li>
           </ul>
           <p>Para mais dúvidas, entre em contato com o suporte.</p>
         </Modal>
-
       </div>
     </>
   );

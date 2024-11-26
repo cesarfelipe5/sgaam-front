@@ -35,7 +35,7 @@ const DrawerMenu = () => {
   }, [isMenuOpen]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem("token");
 
     closeMenu(); // Fecha o menu
 
