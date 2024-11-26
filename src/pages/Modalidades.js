@@ -1,4 +1,4 @@
-import { Button, Checkbox, Form, Input, Modal, Table } from "antd";
+import { Button, Checkbox, Form, Input, Modal, Table, Tag } from "antd";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DrawerMenu from "../components/DrawerMenu";
@@ -11,7 +11,6 @@ const EditableTable = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [helpModalVisible, setHelpModalVisible] = useState(false);
-
 
   const isEditing = (record) => record.id === editing?.id;
 
@@ -28,7 +27,10 @@ const EditableTable = () => {
 
     if (editing?.id) {
       const success = await ModalidadeService.updateModalidade({
-        modalidade: { ...values, status: values.status ? "Ativo" : "Inativo" },
+        modalidade: {
+          ...values,
+          isActive: values.isActive ? "Ativo" : "Inativo",
+        },
         id: editing.id,
       });
 
@@ -43,7 +45,10 @@ const EditableTable = () => {
       toast.success("Modalidade atualizada com sucesso.");
     } else {
       const success = await ModalidadeService.createModalidade({
-        modalidade: { ...values, status: values.status ? "Ativo" : "Inativo" },
+        modalidade: {
+          ...values,
+          isActive: values.isActive ? "Ativo" : "Inativo",
+        },
       });
 
       if (!success) {
@@ -93,9 +98,8 @@ const EditableTable = () => {
     form.setFieldsValue({
       nome: "",
       descricao: "",
-      valor: "",
       ...record,
-      status: record.status === "Ativo",
+      isActive: record.isActive === "Ativo",
     });
 
     setEditing(record);
@@ -108,25 +112,21 @@ const EditableTable = () => {
       title: "Nome",
       dataIndex: "nome",
       key: "nome",
-      editable: true,
     },
     {
       title: "Descrição",
       dataIndex: "descricao",
       key: "descricao",
-      editable: true,
     },
     {
       title: "Status",
-      dataIndex: "status",
-      key: "status",
-      editable: true,
-    },
-    {
-      title: "Valor",
-      dataIndex: "valor",
-      key: "valor",
-      editable: true,
+      dataIndex: "isActive",
+      key: "isActive",
+      render: (isActive) => (
+        <Tag color={isActive === "Ativo" ? "green" : "red"}>
+          {isActive === "Ativo" ? "Ativo" : "Inativo"}
+        </Tag>
+      ),
     },
     {
       title: "Ações",
@@ -154,7 +154,7 @@ const EditableTable = () => {
       ...col,
       onCell: (record) => ({
         record,
-        inputType: col.dataIndex === "valor" ? "number" : "text",
+        inputType: "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),
@@ -169,7 +169,7 @@ const EditableTable = () => {
 
     const newData = data.map((item) => ({
       ...item,
-      status: item.status ? "Ativo" : "Inativo",
+      isActive: item.isActive ? "Ativo" : "Inativo",
     }));
 
     setModalidades(newData);
@@ -232,16 +232,8 @@ const EditableTable = () => {
               <Input />
             </Form.Item>
 
-            <Form.Item name="status" label="Status" valuePropName="checked">
+            <Form.Item name="isActive" label="Status" valuePropName="checked">
               <Checkbox>Ativo</Checkbox>
-            </Form.Item>
-
-            <Form.Item
-              name="valor"
-              label="Valor"
-              rules={[{ required: true, message: "Por favor, insira o valor" }]}
-            >
-              <Input />
             </Form.Item>
 
             <Form.Item>
@@ -272,7 +264,7 @@ const EditableTable = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "24px"
+            fontSize: "24px",
           }}
           onClick={() => setHelpModalVisible(true)}
         >
@@ -285,18 +277,23 @@ const EditableTable = () => {
           footer={[
             <Button key="close" onClick={() => setHelpModalVisible(false)}>
               Fechar
-            </Button>
+            </Button>,
           ]}
         >
           <p>Bem-vindo à página de gestão de modalidades!</p>
           <ul>
-            <li>Use o botão "Adicionar modalidade" para registrar novas modalidades.</li>
-            <li>Clique em "Editar" para modificar as informações de uma modalidade.</li>
+            <li>
+              Use o botão "Adicionar modalidade" para registrar novas
+              modalidades.
+            </li>
+            <li>
+              Clique em "Editar" para modificar as informações de uma
+              modalidade.
+            </li>
             <li>Clique em "Excluir" para remover uma modalidade.</li>
           </ul>
           <p>Para mais dúvidas, entre em contato com o suporte.</p>
         </Modal>
-
       </div>
     </>
   );

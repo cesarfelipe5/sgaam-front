@@ -30,6 +30,7 @@ export const ModalidadeService = {
       nome: modalidade.nome,
       descricao: modalidade.descricao,
       valor: modalidade.valor,
+      isActive: modalidade.isActive === "Ativo",
     };
 
     const { data } = await Api.put(`/modalidade/${id}`, dataToUpdate);
